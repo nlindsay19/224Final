@@ -26,8 +26,9 @@ int main(int argc, char *argv[])
     QString fileOut = "images/shapeout.png";
 
     std::vector<float> depth;
+    std::vector<Eigen::Vector3f> normals;
     ShapeEstimator se;
-    QImage imOut = se.estimateShape(im,mask, depth);
+    QImage imOut = se.estimateShape(im,mask, depth, normals);
     imOut.save(fileOut);
     std::cout << "done" << std::endl;
     return a.exec();

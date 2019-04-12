@@ -31,6 +31,7 @@ SOURCES += main.cpp\
     imagereader.cpp \
     bilateralfilter.cpp \
     shapeestimator.cpp \
+    loggabor.cpp
 
 
 HEADERS  += mainwindow.h \
@@ -307,7 +308,8 @@ HEADERS  += mainwindow.h \
     Eigen/src/SVD/JacobiSVD_LAPACKE.h \
     Eigen/src/SVD/SVDBase.h \
     Eigen/src/SVD/UpperBidiagonalization.h \
-    Eigen/src/UmfPackSupport/UmfPackSupport.h
+    Eigen/src/UmfPackSupport/UmfPackSupport.h \
+    loggabor.h
 
 
 

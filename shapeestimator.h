@@ -11,7 +11,7 @@ public:
 
     void sigmoidalCompression(std::vector<float> &pixelLuminances, float sigma);
     std::vector<float> computePixelLuminance(ImageReader imageIn, ImageReader mask, float &sigma);
-    QImage estimateShape(ImageReader imageIn, ImageReader mask, std::vector<float>& depthMap);
+    QImage estimateShape(ImageReader imageIn, ImageReader mask, std::vector<float>& depthMap, std::vector<Eigen::Vector3f>& normalMap);
 
     float gradientReshape(float x);
     float gradientReshapeRecursive(float in, int itr);

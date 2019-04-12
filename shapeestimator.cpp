@@ -4,6 +4,7 @@
 
 #include "Eigen/Dense"
 
+#define DEBUG 1
 using namespace Eigen;
 
 ShapeEstimator::ShapeEstimator()
@@ -11,7 +12,7 @@ ShapeEstimator::ShapeEstimator()
 
 }
 
-QImage ShapeEstimator::estimateShape(ImageReader imageIn, ImageReader mask, std::vector<float>& depthMap){
+QImage ShapeEstimator::estimateShape(ImageReader imageIn, ImageReader mask, std::vector<float>& depthMap, std::vector<Vector3f>& normalMap){
     BilateralFilter bf;
     int rows = imageIn.getImageHeight();
     int cols = imageIn.getImageWidth();
@@ -26,7 +27,7 @@ QImage ShapeEstimator::estimateShape(ImageReader imageIn, ImageReader mask, std:
 
     sigmoidalCompression(luminances, sigma);
 
-    float bilateralSigmaSpatial = 0.002f * float(cols);
+    float bilateralSigmaSpatial = 0.004f * float(cols);
     float bilateralSigmaL = 255.0f;
     luminances = bf.convolve(imageIn, luminances, bilateralSigmaSpatial, bilateralSigmaL);
     sigmoidalInversion(luminances, sigma);
@@ -34,47 +35,66 @@ QImage ShapeEstimator::estimateShape(ImageReader imageIn, ImageReader mask, std:
 
     std::vector<Vector3f> normals = gradientField(mask, luminances);
 
-//    for(int i = 0; i < rows; i++){
-//        for(int j = 0; j < cols; j++){
-//            int index = imageIn.indexAt(i, j);
-//            float color = luminances[index] * 255.0f;
-//            QColor colorOut = QColor(floor(color), floor(color), floor(color));
-//            imOut[imageIn.indexAt(i, j)] = colorOut.rgb();
-//        }
-//    }
-
-    float maxRed = 0.0f;
-    float maxGreen = 0.0f;
-    for(int i = 0; i < rows; i++){
-        for(int j = 0; j < cols; j++){
-            int index = imageIn.indexAt(i, j);
-            float red = normals[index](0);
-            if(fabs(red) > maxRed){
-                maxRed = fabs(red);
-            }
-            float green = normals[index](1) ;
-            if(fabs(green) > maxGreen){
-                maxGreen = fabs(green);
+    if(DEBUG){
+        QImage output(cols, rows, QImage::Format_RGB32);
+        QRgb *depthMap = reinterpret_cast<QRgb *>(output.bits());
+        for(int i = 0; i < rows; i++){
+            for(int j = 0; j < cols; j++){
+                int index = imageIn.indexAt(i, j);
+                float color = luminances[index] * 255.0f;
+                QColor colorOut = QColor(floor(color), floor(color), floor(color));
+                depthMap[imageIn.indexAt(i, j)] = colorOut.rgb();
             }
         }
+        output.save("images/depthMap.png");
     }
 
     // write out normal map
-    maxRed = 255.0f / maxRed;
-    maxGreen = 255.0f / maxGreen;
-
-    for(int i = 0; i < rows; i++){
-        for(int j = 0; j < cols; j++){
-            int index = imageIn.indexAt(i, j);
-            float red = normals[index](0) * maxRed;
-            float green = normals[index](1) * maxGreen;
-            float blue = normals[index](2) * 255.0f;
-
-            QColor colorOut = QColor(fabs(floor(red)), fabs(floor(green)), floor(blue));
-            imOut[imageIn.indexAt(i, j)] = colorOut.rgb();
+    if(DEBUG){
+        float maxRed = 0.0f;
+        float maxGreen = 0.0f;
+        float minRed = 10000.0f;
+        float minGreen = 10000.0f;
+        for(int i = 0; i < rows; i++){
+            for(int j = 0; j < cols; j++){
+                int index = imageIn.indexAt(i, j);
+                float red = normals[index](0);
+                if(red > maxRed){
+                    maxRed = red;
+                }
+                if(red < minRed){
+                    minRed = red;
+                }
+                float green = normals[index](1) ;
+                if(green > maxGreen){
+                    maxGreen = green;
+                }
+                if(green < minGreen){
+                    minGreen = green;
+                }
+            }
         }
+        QImage output(cols, rows, QImage::Format_RGB32);
+        QRgb *normalMap = reinterpret_cast<QRgb *>(output.bits());
+
+        for(int i = 0; i < rows; i++){
+            for(int j = 0; j < cols; j++){
+                int index = mask.indexAt(i, j);
+                QColor colorOut = QColor(0,0,0);
+                if(QColor(mask.pixelAt(i,j)).red() > 150){
+                    float red = (255) * (normals[index](0)  - minRed)/(maxRed - minRed);
+                    float green = (255) * (normals[index](1)  - minGreen)/(maxGreen - minGreen);
+                    float blue = normals[index](2) * 255.0f;
+
+                    colorOut = QColor(fabs(floor(red)), fabs(floor(green)), floor(blue));
+                }
+                normalMap[mask.indexAt(i, j)] = colorOut.rgb();
+            }
+        }
+        output.save("images/normalmap.png");
     }
     depthMap = luminances;
+    normalMap = normals;
     return output;
 
 }
@@ -218,7 +238,6 @@ void ShapeEstimator::cropMask(ImageReader mask, std::vector<float> &pixelLuminan
            } else {
                pixelLuminances[index] = 0.0f;
            }
-
         }
     }
 }
