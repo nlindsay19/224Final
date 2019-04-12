@@ -44,3 +44,4 @@ int ImageReader::indexAt(int row, int col){
 QRgb ImageReader::pixelAt(int row, int col){
     return m_imageData[indexAt(row, col)];
 }
+

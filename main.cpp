@@ -7,6 +7,8 @@
 #include <iostream>
 #include <QImage>
 #include "imagereader.h"
+#include "bilateralfilter.h"
+#include "shapeestimator.h"
 
 int main(int argc, char *argv[])
 {
@@ -14,21 +16,19 @@ int main(int argc, char *argv[])
     MainWindow w;
     w.show();
 
-    QString fileIn = "full path to input file";
-    ImageReader im(fileIn);
-    QString fileOut = "full path to output file";
+    QString imageFile = "images/bottle.png";
+    ImageReader im(imageFile);
+    std::cout << "read image 1" << std::endl;
+    QString maskFile = "images/mask.png";
+    ImageReader mask(maskFile);
+    std::cout << "read mask" << std::endl;
 
-    QImage imOut(im.getImageWidth(), im.getImageHeight(), QImage::Format_RGB32);
-    QRgb *data = reinterpret_cast<QRgb *>(imOut.bits());
-    int counter = 0;
-    for(int i = 0; i < im.getImageHeight(); i ++){
-        for(int j = 0; j < im.getImageWidth(); j++){
-            QRgb color = im.pixelAt(i, j);
-            data[counter] = color;
-            counter += 1;
-        }
-    }
+    QString fileOut = "images/shapeout.png";
+
+    std::vector<float> depth;
+    ShapeEstimator se;
+    QImage imOut = se.estimateShape(im,mask, depth);
     imOut.save(fileOut);
-
+    std::cout << "done" << std::endl;
     return a.exec();
 }
