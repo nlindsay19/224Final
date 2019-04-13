@@ -12,7 +12,7 @@ ShapeEstimator::ShapeEstimator()
 
 }
 
-QImage ShapeEstimator::estimateShape(ImageReader imageIn, ImageReader mask, std::vector<float>& depthMap, std::vector<Vector3f>& normalMap){
+QImage ShapeEstimator::estimateShape(ImageReader imageIn, ImageReader mask, std::vector<float>& depthMap, std::vector<Vector3f>& normalMap, std::vector<float> &gradientX, std::vector<float> &gradientY){
     BilateralFilter bf;
     int rows = imageIn.getImageHeight();
     int cols = imageIn.getImageWidth();
@@ -33,7 +33,7 @@ QImage ShapeEstimator::estimateShape(ImageReader imageIn, ImageReader mask, std:
     sigmoidalInversion(luminances, sigma);
     cropMask(mask, luminances);
 
-    std::vector<Vector3f> normals = gradientField(mask, luminances);
+    std::vector<Vector3f> normals = gradientField(mask, luminances, gradientX, gradientY);
 
     if(DEBUG){
         QImage output(cols, rows, QImage::Format_RGB32);
@@ -139,12 +139,9 @@ void ShapeEstimator::sigmoidalInversion(std::vector<float> &pixelLuminances, flo
     }
 }
 
-std::vector<Vector3f> ShapeEstimator::gradientField(ImageReader mask, std::vector<float> &pixelLuminances){
+std::vector<Vector3f> ShapeEstimator::gradientField(ImageReader mask, std::vector<float> &pixelLuminances, std::vector<float> &gradientX, std::vector<float> &gradientY){
     int rows = mask.getImageHeight();
     int cols = mask.getImageWidth();
-
-    std::vector<float> gradientX;
-    std::vector<float> gradientY;
 
     float gxNormalize = 0.0f;
     float gyNormalize = 0.0f;

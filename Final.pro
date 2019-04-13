@@ -4,8 +4,8 @@
 #
 #-------------------------------------------------
 
-QMAKE_LFLAGS += -stdlib=libc++
-QMAKE_CXXFLAGS += -stdlib=libc++
+#QMAKE_LFLAGS += -stdlib=libc++
+#QMAKE_CXXFLAGS += -stdlib=libc++
 
 QT       += core gui
 

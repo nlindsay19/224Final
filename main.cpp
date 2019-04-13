@@ -9,6 +9,11 @@
 #include "imagereader.h"
 #include "bilateralfilter.h"
 #include "shapeestimator.h"
+#include "incidentlight.h"
+#include "retexture.h"
+#include "Eigen/Dense"
+
+using namespace Eigen;
 
 int main(int argc, char *argv[])
 {
@@ -28,7 +33,13 @@ int main(int argc, char *argv[])
     std::vector<float> depth;
     std::vector<Eigen::Vector3f> normals;
     ShapeEstimator se;
-    QImage imOut = se.estimateShape(im,mask, depth, normals);
+    std::vector<float> gradientX;
+    std::vector<float> gradientY;
+    QImage imOut = se.estimateShape(im,mask, depth, normals, gradientX, gradientY);
+    incidentlight incidentObj;
+    std::vector<Vector3f> inpainting = incidentObj.inPaint(mask, im);
+    Retexture retextureObj;
+    //std::vector<Vector3f> retexturing = retextureObj.calculate(inpainting, im, gradientX, gradientY, );
     imOut.save(fileOut);
     std::cout << "done" << std::endl;
     return a.exec();

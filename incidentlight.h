@@ -10,7 +10,7 @@ class incidentlight
 {
 public:
     incidentlight();
-    std::vector<Vector3f> inPaint(ImageReader mask);
+    std::vector<Vector3f> inPaint(ImageReader mask, std::vector<Vector3f> image);
 };
 
 #endif // INCIDENTLIGHT_H

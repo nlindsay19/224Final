@@ -5,7 +5,7 @@ Retexture::Retexture()
 {
 }
 
-void Retexture::calculate(std::vector<Vector3f> T, std::vector<Vector3f> image, std::vector<Vector3f> deltaX, std::vector<Vector3f> deltaY, std::vector<Vector3f> &result, ImageReader mask)
+void Retexture::calculate(std::vector<Vector3f> T, std::vector<Vector3f> image, std::vector<float> deltaX, std::vector<float> deltaY, std::vector<Vector3f> &result, ImageReader mask)
 {
     int width = mask.getImageWidth();
 
