@@ -1,5 +1,6 @@
 #include "bilateralfilter.h"
 #include "imagereader.h"
+#include <QColor>
 #include <math.h>
 BilateralFilter::BilateralFilter()
 {

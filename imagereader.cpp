@@ -1,5 +1,7 @@
 #include "imagereader.h"
 #include "assert.h"
+#include "QtWidgets"
+
 
 ImageReader::ImageReader(QString filename)
 {
@@ -10,6 +12,8 @@ ImageReader::ImageReader(QString filename)
     } else {
         std::cout << "Could not read image." << std::endl;
     }
+
+    findMinAndMax();
 }
 
 ImageReader::ImageReader(int width, int height)
@@ -43,5 +47,36 @@ int ImageReader::indexAt(int row, int col){
 
 QRgb ImageReader::pixelAt(int row, int col){
     return m_imageData[indexAt(row, col)];
+}
+
+void ImageReader::findMinAndMax()
+{
+    int min = 10000000000;
+    int max = -1;
+    for (int i = 0; i < getImageHeight(); i++) {
+        for (int j = 0; j < getImageWidth(); j++) {
+            if (QColor(pixelAt(i,j)).red() > 150) {
+                if (j > max) {
+                    max = j;
+                }
+                if (j < min) {
+                    min = j;
+                }
+            }
+        }
+    }
+    assert(max > min);
+    m_xMax = max;
+    m_xMin = min;
+}
+
+int ImageReader::getXMax()
+{
+    return m_xMax;
+}
+
+int ImageReader::getXMin()
+{
+    return m_xMin;
 }
 

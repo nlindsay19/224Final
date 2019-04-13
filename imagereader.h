@@ -14,10 +14,17 @@ public:
     int getImageHeight();
     QRgb pixelAt(int row, int col);
     int indexAt(int row, int col);
+
+    void findMinAndMax();
+    int getXMin();
+    int getXMax();
+
 private:
     QRgb *m_imageData;
     QString m_filename;
     QImage m_image;
+    int m_xMin;
+    int m_xMax;
 
 };
 
