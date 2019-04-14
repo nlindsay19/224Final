@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <QImage>
+
+#include <Eigen/Dense>
 class ImageReader
 {
 public:
@@ -19,6 +21,7 @@ public:
     int getXMin();
     int getXMax();
 
+    std::vector<Eigen::Vector3f> toVector();
 private:
     QRgb *m_imageData;
     QString m_filename;

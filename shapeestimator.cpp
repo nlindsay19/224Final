@@ -12,14 +12,10 @@ ShapeEstimator::ShapeEstimator()
 
 }
 
-QImage ShapeEstimator::estimateShape(ImageReader imageIn, ImageReader mask, std::vector<float>& depthMap, std::vector<Vector3f>& normalMap, std::vector<float> &gradientX, std::vector<float> &gradientY){
+void ShapeEstimator::estimateShape(ImageReader imageIn, ImageReader mask, std::vector<float>& depthMap, std::vector<Vector3f>& normalMap, std::vector<float> &gradientX, std::vector<float> &gradientY){
     BilateralFilter bf;
     int rows = imageIn.getImageHeight();
     int cols = imageIn.getImageWidth();
-
-
-    QImage output(cols, rows, QImage::Format_RGB32);
-    QRgb *imOut = reinterpret_cast<QRgb *>(output.bits());
 
     float sigma = 0.0f;
 
@@ -95,8 +91,6 @@ QImage ShapeEstimator::estimateShape(ImageReader imageIn, ImageReader mask, std:
     }
     depthMap = luminances;
     normalMap = normals;
-    return output;
-
 }
 
 std::vector<float> ShapeEstimator::computePixelLuminance(ImageReader imageIn, ImageReader mask, float &sigma){
