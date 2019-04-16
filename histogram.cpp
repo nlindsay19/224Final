@@ -35,11 +35,11 @@ void Histogram::createHistogram()
     for (int i = 0; i < m_luminances.size(); i++) {
         float lum = m_luminances[i];
         if (lum <= 0) {
-            std::cout << "continuing" << std::endl;
+           // std::cout << "continuing" << std::endl;
             continue;
         }
         int bin = (int) ((lum - fmod(lum, m_binSize)) / m_binSize);
-        std::cout << "Incrementing hist" << std::endl;
+        //std::cout << "Incrementing hist" << std::endl;
         m_histogram[bin]++;
     }
 
@@ -61,18 +61,32 @@ float Histogram::findLowestSlope()
     float minSlope = 100000000.f;
     int minIndex = 0;
 
-    for (int i = 0; i < m_histogram.size() - 1; i++) {
-        float slope = findSlope(i);
-        if (slope < minSlope) {
-            minSlope = slope;
-            minIndex = i;
+
+    float histogramAccumulator = 0.0f;
+//    for (int i = 0; i < m_histogram.size() - 1; i++) {
+    for (int i = 0; i < m_histogram.size(); i++) {
+        histogramAccumulator += float(m_histogram[i]);
+//        float slope = findSlope(i);
+//        std::cout << i << " " << m_histogram[i] << std::endl;
+//        if (slope < minSlope) {
+//            minSlope = slope;
+//            minIndex = i;
+//        }
+    }
+    int cutoffIndex = m_histogram.size() - 1;
+    float cutoffAccumulator = 0.0f;
+    for (int i = m_histogram.size() - 1; i >= 0; i--) {
+        cutoffAccumulator += float(m_histogram[i]);
+        if(cutoffAccumulator/histogramAccumulator > 0.005){
+            cutoffIndex = i;
+            break;
         }
     }
-
+    minIndex = cutoffIndex;
     std::cout << "Slope index: " << minIndex << std::endl;
 
     // Returning beginning of highlight vals
-    return ((float)minIndex) * m_binSize;
+    return ((float)minIndex) * m_binSize ;//+ 0.5;
 
 }
 

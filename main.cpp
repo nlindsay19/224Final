@@ -22,13 +22,13 @@ int main(int argc, char *argv[])
     MainWindow w;
     w.show();
 
-    QString imageFile = "images/bottle.jpg";
+    QString imageFile = "images/han.jpg";
     ImageReader im(imageFile);
     std::cout << "read image 1" << std::endl;
-    QString maskFile = "images/mask.jpg";
+    QString maskFile = "images/han_mask.jpg";
     ImageReader mask(maskFile);
     std::cout << "read mask" << std::endl;
-    QString backgroundFile = "images/bottle.jpg";
+    QString backgroundFile = "images/background.jpg";
     ImageReader background(backgroundFile);
     std::cout << "read background" << std::endl;
 
@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
     std::cout << "finished estimating" << std::endl;
     incidentlight incidentObj;
 
-    std::vector<Vector3f> inpainting = incidentObj.inPaint(mask, im.toVector());
+    std::vector<Vector3f> inpainting = incidentObj.inPaint(mask, background.toVector());
 
     std::cout << "inpainting" << std::endl;
     int cols = im.getImageWidth();
@@ -87,7 +87,8 @@ int main(int argc, char *argv[])
     for (int i = 0; i < highlights.size(); i++) {
         int index = highlights[i];
         Vector3f originalVal = originalImage[index];
-        QColor color = QColor(int(originalVal[0]), int(originalVal[1]), int(originalVal[2]));
+        int gray = (int(originalVal[0]) + int(originalVal[1]) + int(originalVal[2]))/3;
+        QColor color = QColor(gray, gray, gray);
         retextured[index] = color.rgb();
     }
     outputF.save("images/retextured.png");
