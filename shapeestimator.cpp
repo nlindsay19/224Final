@@ -5,7 +5,7 @@
 #include "Eigen/Dense"
 
 #define DEBUG 1
-#define DEPTHMAPBACKGROUND 1
+#define DEPTHMAPBACKGROUND 0
 
 using namespace Eigen;
 
@@ -25,7 +25,7 @@ void ShapeEstimator::estimateShape(ImageReader imageIn, ImageReader mask, std::v
 
     sigmoidalCompression(luminances, sigma);
 
-    float bilateralSigmaSpatial = 0.008f * float(cols);
+    float bilateralSigmaSpatial = 0.002f * float(cols);
     float bilateralSigmaL = 255.0f;
     luminances = bf.convolve(imageIn, luminances, bilateralSigmaSpatial, bilateralSigmaL);
     sigmoidalInversion(luminances, sigma);

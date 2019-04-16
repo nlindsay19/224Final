@@ -59,8 +59,24 @@ int main(int argc, char *argv[])
     }
     output.save("images/inpaint.png");
 
-   // Retexture retextureObj;
-   // std::vector<Vector3f> retexturing = retextureObj.calculate(inpainting, im, gradientX, gradientY, luminances, mask );
+    Retexture retextureObj;
+    std::vector<Vector3f> retexturing;
+    retextureObj.calculate(inpainting, im.toVector(), gradientX, gradientY, retexturing, mask );
+
+    QImage outputF(cols, rows, QImage::Format_RGB32);
+    QRgb *retextured = reinterpret_cast<QRgb *>(outputF.bits());
+    for(int i = 0; i < rows; i++){
+        for(int j = 0; j < cols; j++){
+            int index = im.indexAt(i, j);
+            Vector3f color = retexturing[index];
+            float colorR = color(0);
+            float colorG = color(1);
+            float colorB = color(2);
+            QColor colorOut = QColor(int(colorR), int(colorG), int(colorB));
+            retextured[im.indexAt(i, j)] = colorOut.rgb();
+        }
+    }
+    outputF.save("images/retextured.png");
 
 
     std::cout << "done" << std::endl;
