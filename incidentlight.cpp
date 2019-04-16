@@ -25,7 +25,13 @@ std::vector<Vector3f> incidentlight::inPaint(ImageReader mask, std::vector<Vecto
             float w2 = (float(xMax) - float(j)) / (float(xMax) - float(xMin));
 
             int x1 = 2*xMin - j;
+            if(x1 < 0){
+                x1 += xMin;
+            }
             int x2 = 2*xMax - j;
+            if(x2 < 0){
+                x2 += (mask.getImageWidth() - xMax);
+            }
             int index1 = i*mask.getImageWidth() + x1;
             int index2 = i*mask.getImageWidth() + x2;
 

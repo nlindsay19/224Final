@@ -36,12 +36,12 @@ int main(int argc, char *argv[])
     std::vector<float> gradientX;
     std::vector<float> gradientY;
     se.estimateShape(im,mask, depth, normals, gradientX, gradientY);
-
+ std::cout << "finished estimating" << std::endl;
     incidentlight incidentObj;
 
     std::vector<Vector3f> inpainting = incidentObj.inPaint(mask, im.toVector());
 
-
+    std::cout << "inpainting" << std::endl;
     int cols = im.getImageWidth();
     int rows = im.getImageHeight();
     QImage output(cols, rows, QImage::Format_RGB32);

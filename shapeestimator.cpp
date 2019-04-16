@@ -27,7 +27,9 @@ void ShapeEstimator::estimateShape(ImageReader imageIn, ImageReader mask, std::v
 
     float bilateralSigmaSpatial = 0.002f * float(cols);
     float bilateralSigmaL = 255.0f;
+    std::cout << "convolve" << std::endl;
     luminances = bf.convolve(imageIn, luminances, bilateralSigmaSpatial, bilateralSigmaL);
+    std::cout << "inversion" << std::endl;
     sigmoidalInversion(luminances, sigma);
     cropMask(mask, luminances);
 
@@ -106,7 +108,7 @@ std::vector<float> ShapeEstimator::computePixelLuminance(ImageReader imageIn, Im
         for(int col = 0; col < cols; col++){
             QColor imageColor = QColor(imageIn.pixelAt(row, col));
             QColor maskColor = QColor(mask.pixelAt(row, col));
-            if((maskColor.red() > 200)){
+            if((maskColor.red() > 150)){
                 pixelsInObject += 1;
                 float luminance =  0.213f * float(imageColor.red()) + 0.715f * float(imageColor.green()) + 0.072f * float(imageColor.blue());
                 pixelLuminances.push_back(luminance/ 255.0f);
@@ -177,11 +179,11 @@ std::vector<Vector3f> ShapeEstimator::gradientField(ImageReader mask, std::vecto
     assert(gradientX.size() == gradientY.size());
 
     for(int i = 0; i < gradientX.size(); i++){
-        gradientX[i] = gradientReshapeRecursive(gradientX[i]/gxNormalize, 1) * gxNormalize;
+        gradientX[i] = gradientReshapeRecursive(gradientX[i]/gxNormalize, 10) * gxNormalize;
 
     }
     for(int i = 0; i < gradientY.size(); i++){
-        gradientY[i] = gradientReshapeRecursive(gradientY[i]/gyNormalize, 1) * gyNormalize;
+        gradientY[i] = gradientReshapeRecursive(gradientY[i]/gyNormalize, 10) * gyNormalize;
     }
 
     std::vector<Vector3f> normals;
