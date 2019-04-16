@@ -11,6 +11,7 @@
 #include "shapeestimator.h"
 #include "incidentlight.h"
 #include "retexture.h"
+#include "histogram.h"
 #include "Eigen/Dense"
 
 using namespace Eigen;
@@ -21,13 +22,13 @@ int main(int argc, char *argv[])
     MainWindow w;
     w.show();
 
-    QString imageFile = "images/han.jpg";
+    QString imageFile = "images/bottle.jpg";
     ImageReader im(imageFile);
     std::cout << "read image 1" << std::endl;
-    QString maskFile = "images/han_mask.jpg";
+    QString maskFile = "images/mask.jpg";
     ImageReader mask(maskFile);
     std::cout << "read mask" << std::endl;
-    QString backgroundFile = "images/background.jpg";
+    QString backgroundFile = "images/bottle.jpg";
     ImageReader background(backgroundFile);
     std::cout << "read background" << std::endl;
 
@@ -40,7 +41,7 @@ int main(int argc, char *argv[])
     std::cout << "finished estimating" << std::endl;
     incidentlight incidentObj;
 
-    std::vector<Vector3f> inpainting = incidentObj.inPaint(mask, background.toVector());
+    std::vector<Vector3f> inpainting = incidentObj.inPaint(mask, im.toVector());
 
     std::cout << "inpainting" << std::endl;
     int cols = im.getImageWidth();
@@ -64,6 +65,9 @@ int main(int argc, char *argv[])
     std::vector<Vector3f> retexturing;
     retextureObj.calculate(inpainting, im.toVector(), gradientX, gradientY, retexturing, mask );
 
+    Histogram hist(se.getLuminances());
+    std::vector<int> highlights = hist.findHighlights();
+
     QImage outputF(cols, rows, QImage::Format_RGB32);
     QRgb *retextured = reinterpret_cast<QRgb *>(outputF.bits());
     for(int i = 0; i < rows; i++){
@@ -76,6 +80,15 @@ int main(int argc, char *argv[])
             QColor colorOut = QColor(int(colorR), int(colorG), int(colorB));
             retextured[im.indexAt(i, j)] = colorOut.rgb();
         }
+    }
+
+    std::vector<Vector3f> originalImage = im.toVector();
+    std::cout << "Highlights size: " << highlights.size() << std::endl;
+    for (int i = 0; i < highlights.size(); i++) {
+        int index = highlights[i];
+        Vector3f originalVal = originalImage[index];
+        QColor color = QColor(int(originalVal[0]), int(originalVal[1]), int(originalVal[2]));
+        retextured[index] = color.rgb();
     }
     outputF.save("images/retextured.png");
 

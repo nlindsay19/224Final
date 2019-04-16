@@ -1,16 +1,20 @@
 #include "histogram.h"
 #include "math.h"
+#include "stdio.h"
+#include <iostream>
 
 Histogram::Histogram(std::vector<float> luminances)
 {
-    m_histogram.reserve(m_size);
-    std::fill(m_histogram.begin(), m_histogram.end(), 0);
+    //m_histogram.reserve(m_size);
+    std::vector<int> tmp (m_size);
+    std::fill(tmp.begin(), tmp.end(), 0);
+    m_histogram = tmp;
 
     // Take the log of all the luminances and ignore negative values
-    for (int i = 0; i < luminances; i++) {
-        float logVal = log(luminances[i]);
+    for (int i = 0; i < luminances.size(); i++) {
+        //float logVal = log(luminances[i]);
 
-        m_luminances.push_back(logVal);
+        m_luminances.push_back(luminances[i]);
     }
 
     float max = -1;
@@ -30,10 +34,12 @@ void Histogram::createHistogram()
 
     for (int i = 0; i < m_luminances.size(); i++) {
         float lum = m_luminances[i];
-        if (lum < 0) {
+        if (lum <= 0) {
+            std::cout << "continuing" << std::endl;
             continue;
         }
         int bin = (int) ((lum - fmod(lum, m_binSize)) / m_binSize);
+        std::cout << "Incrementing hist" << std::endl;
         m_histogram[bin]++;
     }
 
@@ -54,6 +60,7 @@ float Histogram::findLowestSlope()
 {
     float minSlope = 100000000.f;
     int minIndex = 0;
+
     for (int i = 0; i < m_histogram.size() - 1; i++) {
         float slope = findSlope(i);
         if (slope < minSlope) {
@@ -61,6 +68,8 @@ float Histogram::findLowestSlope()
             minIndex = i;
         }
     }
+
+    std::cout << "Slope index: " << minIndex << std::endl;
 
     // Returning beginning of highlight vals
     return ((float)minIndex) * m_binSize;
@@ -70,13 +79,16 @@ float Histogram::findLowestSlope()
 std::vector<int> Histogram::findHighlights()
 {
     float lowestLog = findLowestSlope();
+    std::cout << "Lowest log: " << lowestLog << std::endl;
     std::vector<int> highlights;
     for (int i = 0; i < m_luminances.size(); i++) {
+
         float lum = m_luminances[i];
         if (lum > lowestLog) {
             highlights.push_back(i);
         }
     }
 
+    std::cout << "Found highlights" << std::endl;
     return highlights;
 }

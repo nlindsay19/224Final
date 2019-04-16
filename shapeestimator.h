@@ -20,6 +20,11 @@ public:
     void sigmoidalInversion(std::vector<float> &pixelLuminances, float sigma);
 
     void cropMask(ImageReader mask, std::vector<float> &pixelLuminances);
+
+    std::vector<float> getLuminances();
+
+private:
+    std::vector<float> m_luminances;
 };
 
 #endif // SHAPEESTIMATOR_H

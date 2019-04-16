@@ -22,6 +22,7 @@ void ShapeEstimator::estimateShape(ImageReader imageIn, ImageReader mask, std::v
     float sigma = 0.0f;
 
     std::vector<float> luminances = computePixelLuminance(imageIn, mask, sigma);
+    m_luminances = luminances;
 
     sigmoidalCompression(luminances, sigma);
     std::cout << rows << " " << cols << std::endl;
@@ -245,4 +246,9 @@ void ShapeEstimator::cropMask(ImageReader mask, std::vector<float> &pixelLuminan
            }
         }
     }
+}
+
+std::vector<float> ShapeEstimator::getLuminances()
+{
+    return m_luminances;
 }
