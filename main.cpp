@@ -36,10 +36,31 @@ int main(int argc, char *argv[])
     std::vector<float> gradientX;
     std::vector<float> gradientY;
     se.estimateShape(im,mask, depth, normals, gradientX, gradientY);
+
     incidentlight incidentObj;
+
     std::vector<Vector3f> inpainting = incidentObj.inPaint(mask, im.toVector());
-    Retexture retextureObj;
-    //std::vector<Vector3f> retexturing = retextureObj.calculate(inpainting, im, gradientX, gradientY, );
+
+
+    int cols = im.getImageWidth();
+    int rows = im.getImageHeight();
+    QImage output(cols, rows, QImage::Format_RGB32);
+    QRgb *inpainted = reinterpret_cast<QRgb *>(output.bits());
+    for(int i = 0; i < rows; i++){
+        for(int j = 0; j < cols; j++){
+            int index = im.indexAt(i, j);
+            Vector3f color = inpainting[index];
+            float colorR = color(0);
+            float colorG = color(1);
+            float colorB = color(2);
+            QColor colorOut = QColor(int(colorR), int(colorG), int(colorB));
+            inpainted[im.indexAt(i, j)] = colorOut.rgb();
+        }
+    }
+    output.save("images/inpaint.png");
+
+   // Retexture retextureObj;
+   // std::vector<Vector3f> retexturing = retextureObj.calculate(inpainting, im, gradientX, gradientY, luminances, mask );
 
 
     std::cout << "done" << std::endl;

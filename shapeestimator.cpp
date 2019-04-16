@@ -5,6 +5,8 @@
 #include "Eigen/Dense"
 
 #define DEBUG 1
+#define DEPTHMAPBACKGROUND 1
+
 using namespace Eigen;
 
 ShapeEstimator::ShapeEstimator()
@@ -23,7 +25,7 @@ void ShapeEstimator::estimateShape(ImageReader imageIn, ImageReader mask, std::v
 
     sigmoidalCompression(luminances, sigma);
 
-    float bilateralSigmaSpatial = 0.004f * float(cols);
+    float bilateralSigmaSpatial = 0.008f * float(cols);
     float bilateralSigmaL = 255.0f;
     luminances = bf.convolve(imageIn, luminances, bilateralSigmaSpatial, bilateralSigmaL);
     sigmoidalInversion(luminances, sigma);
@@ -110,7 +112,11 @@ std::vector<float> ShapeEstimator::computePixelLuminance(ImageReader imageIn, Im
                 pixelLuminances.push_back(luminance/ 255.0f);
                 objectLuminanceSum += log(luminance / 255.0f);
             } else {
-                pixelLuminances.push_back(0.0f);
+                if(DEPTHMAPBACKGROUND){
+                     pixelLuminances.push_back(1.0f);
+                } else {
+                     pixelLuminances.push_back(0.0f);
+                }
             }
         }
     }
@@ -227,7 +233,11 @@ void ShapeEstimator::cropMask(ImageReader mask, std::vector<float> &pixelLuminan
            if(maskColor.red() > 150){
 
            } else {
-               pixelLuminances[index] = 0.0f;
+               if(DEPTHMAPBACKGROUND){
+                    pixelLuminances[index] = 1.0f;
+               } else {
+                    pixelLuminances[index] = 0.0f;
+               }
            }
         }
     }

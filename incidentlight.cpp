@@ -10,18 +10,19 @@ std::vector<Vector3f> incidentlight::inPaint(ImageReader mask, std::vector<Vecto
     int xMin = mask.getXMin();
     int xMax = mask.getXMax();
 
-    std::vector<Vector3f> result (mask.getImageHeight()*mask.getImageWidth());
+    std::vector<Vector3f> result;
 
     for (int i = 0; i < mask.getImageHeight(); i++) {
-        for (int j = 0; j < mask.getImageHeight(); j++) {
+        for (int j = 0; j < mask.getImageWidth(); j++) {
 
-            if(QColor(mask.pixelAt(j,i)).red() < 150) {
-                result.push_back(Vector3f(0, 0, 0));
+            if(QColor(mask.pixelAt(i,j)).red() < 10) {
+                Eigen::Vector3f backgroundColor = image[mask.indexAt(i,j)];
+                result.push_back(backgroundColor);
                 continue;
             }
 
-            float w1 = (j - xMin) / (xMax - xMin);
-            float w2 = (xMax - j) / (xMax - xMin);
+            float w1 = (float(j) - float(xMin)) / (float(xMax) - float(xMin));
+            float w2 = (float(xMax) - float(j)) / (float(xMax) - float(xMin));
 
             int x1 = 2*xMin - j;
             int x2 = 2*xMax - j;

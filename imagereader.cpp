@@ -3,8 +3,6 @@
 #include "QtWidgets"
 #include "Eigen/Dense"
 
-using namespace Eigen;
-
 ImageReader::ImageReader(QString filename)
 {
     bool success = m_image.load(filename);
@@ -82,12 +80,12 @@ int ImageReader::getXMin()
     return m_xMin;
 }
 
-std::vector<Vector3f> ImageReader::toVector(){
-    std::vector<Vector3f> output;
+std::vector<Eigen::Vector3f> ImageReader::toVector(){
+    std::vector<Eigen::Vector3f> output;
     for (int i = 0; i < getImageHeight(); i++) {
         for (int j = 0; j < getImageWidth(); j++) {
             QColor pixelColor = QColor(pixelAt(i,j));
-            Vector3f color = Vector3f(float(pixelColor.red()), float(pixelColor.green()), float(pixelColor.blue()));
+            Eigen::Vector3f color = Eigen::Vector3f(float(pixelColor.red()), float(pixelColor.green()), float(pixelColor.blue()));
             output.push_back(color);
         }
     }
