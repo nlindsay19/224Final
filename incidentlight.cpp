@@ -15,7 +15,7 @@ std::vector<Vector3f> incidentlight::inPaint(ImageReader mask, std::vector<Vecto
     for (int i = 0; i < mask.getImageHeight(); i++) {
         for (int j = 0; j < mask.getImageWidth(); j++) {
 
-            if(QColor(mask.pixelAt(i,j)).red() < 10) {
+            if(QColor(mask.pixelAt(i,j)).red() < 150) {
                 Eigen::Vector3f backgroundColor = image[mask.indexAt(i,j)];
                 result.push_back(backgroundColor);
                 continue;
