@@ -34,7 +34,8 @@ SOURCES += main.cpp\
     shapeestimator.cpp \
     loggabor.cpp \
     retexture.cpp \
-    incidentlight.cpp
+    incidentlight.cpp \
+    histogram.cpp
 
 
 HEADERS  += mainwindow.h \
@@ -314,7 +315,8 @@ HEADERS  += mainwindow.h \
     Eigen/src/UmfPackSupport/UmfPackSupport.h \
     loggabor.h \
     retexture.h \
-    incidentlight.h
+    incidentlight.h \
+    histogram.h
 
 
 
