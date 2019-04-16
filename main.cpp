@@ -21,14 +21,15 @@ int main(int argc, char *argv[])
     MainWindow w;
     w.show();
 
-    QString imageFile = "images/bottle.png";
+    QString imageFile = "images/han.jpg";
     ImageReader im(imageFile);
     std::cout << "read image 1" << std::endl;
-    QString maskFile = "images/mask.png";
+    QString maskFile = "images/han_mask.jpg";
     ImageReader mask(maskFile);
     std::cout << "read mask" << std::endl;
-
-    QString fileOut = "images/shapeout.png";
+    QString backgroundFile = "images/background.jpg";
+    ImageReader background(backgroundFile);
+    std::cout << "read background" << std::endl;
 
     std::vector<float> depth;
     std::vector<Eigen::Vector3f> normals;
@@ -36,10 +37,10 @@ int main(int argc, char *argv[])
     std::vector<float> gradientX;
     std::vector<float> gradientY;
     se.estimateShape(im,mask, depth, normals, gradientX, gradientY);
- std::cout << "finished estimating" << std::endl;
+    std::cout << "finished estimating" << std::endl;
     incidentlight incidentObj;
 
-    std::vector<Vector3f> inpainting = incidentObj.inPaint(mask, im.toVector());
+    std::vector<Vector3f> inpainting = incidentObj.inPaint(mask, background.toVector());
 
     std::cout << "inpainting" << std::endl;
     int cols = im.getImageWidth();
