@@ -17,7 +17,10 @@ public:
 private:
 
     float m_f = 0.0f;
+
     float m_s = 50.0f;
+
+
 };
 
 #endif // RETEXTURE_H
