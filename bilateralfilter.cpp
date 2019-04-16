@@ -37,7 +37,7 @@ QImage BilateralFilter::convolve(ImageReader im, float sigmac, float sigmar){
             counter += 1;
         }
     }
-    std::cout << "done" << std::endl;
+    //std::cout << "done" << std::endl;
     return output;
 }
 
@@ -46,7 +46,7 @@ std::vector<float> BilateralFilter::convolve(ImageReader im, std::vector<float> 
     int cols = im.getImageWidth();
     std::vector<float> imOut;
     for(int row = 0; row < rows; row++){
-        std::cout << row << std::endl;
+       // std::cout << row << std::endl;
         #pragma omp parallel for
         for(int col = 0; col < cols; col++){
             if(row - m_kernelRadius < 0 || col - m_kernelRadius < 0){

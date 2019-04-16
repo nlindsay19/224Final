@@ -24,14 +24,14 @@ void ShapeEstimator::estimateShape(ImageReader imageIn, ImageReader mask, std::v
     std::vector<float> luminances = computePixelLuminance(imageIn, mask, sigma);
 
     sigmoidalCompression(luminances, sigma);
-
+    std::cout << rows << " " << cols << std::endl;
     float bilateralSigmaSpatial = 0.002f * float(cols);
     float bilateralSigmaL = 255.0f;
     std::cout << "convolve" << std::endl;
     luminances = bf.convolve(imageIn, luminances, bilateralSigmaSpatial, bilateralSigmaL);
     std::cout << "inversion" << std::endl;
     sigmoidalInversion(luminances, sigma);
-    cropMask(mask, luminances);
+    //cropMask(mask, luminances);
 
     std::vector<Vector3f> normals = gradientField(mask, luminances, gradientX, gradientY);
 
@@ -111,6 +111,9 @@ std::vector<float> ShapeEstimator::computePixelLuminance(ImageReader imageIn, Im
             if((maskColor.red() > 150)){
                 pixelsInObject += 1;
                 float luminance =  0.213f * float(imageColor.red()) + 0.715f * float(imageColor.green()) + 0.072f * float(imageColor.blue());
+                if(luminance == 0.0f){
+                    luminance = 0.0001f;
+                }
                 pixelLuminances.push_back(luminance/ 255.0f);
                 objectLuminanceSum += log(luminance / 255.0f);
             } else {
@@ -122,7 +125,6 @@ std::vector<float> ShapeEstimator::computePixelLuminance(ImageReader imageIn, Im
             }
         }
     }
-
     sigma = exp(objectLuminanceSum / float(pixelsInObject));
     return pixelLuminances;
 }
@@ -179,11 +181,11 @@ std::vector<Vector3f> ShapeEstimator::gradientField(ImageReader mask, std::vecto
     assert(gradientX.size() == gradientY.size());
 
     for(int i = 0; i < gradientX.size(); i++){
-        gradientX[i] = gradientReshapeRecursive(gradientX[i]/gxNormalize, 10) * gxNormalize;
+        gradientX[i] = gradientReshapeRecursive(gradientX[i]/gxNormalize, 1) * gxNormalize;
 
     }
     for(int i = 0; i < gradientY.size(); i++){
-        gradientY[i] = gradientReshapeRecursive(gradientY[i]/gyNormalize, 10) * gyNormalize;
+        gradientY[i] = gradientReshapeRecursive(gradientY[i]/gyNormalize, 1) * gyNormalize;
     }
 
     std::vector<Vector3f> normals;
