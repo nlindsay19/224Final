@@ -77,7 +77,9 @@ float Histogram::findLowestSlope()
     float cutoffAccumulator = 0.0f;
     for (int i = m_histogram.size() - 1; i >= 0; i--) {
         cutoffAccumulator += float(m_histogram[i]);
+
         if(cutoffAccumulator/histogramAccumulator > 0.005){
+
             cutoffIndex = i;
             break;
         }
