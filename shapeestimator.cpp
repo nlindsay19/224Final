@@ -26,7 +26,7 @@ void ShapeEstimator::estimateShape(ImageReader imageIn, ImageReader mask, std::v
 
     sigmoidalCompression(luminances, sigma);
     std::cout << rows << " " << cols << std::endl;
-    float bilateralSigmaSpatial = 0.002f * float(cols);
+    float bilateralSigmaSpatial = 0.004f * float(cols);
     float bilateralSigmaL = 255.0f;
     std::cout << "convolve" << std::endl;
     luminances = bf.convolve(imageIn, luminances, bilateralSigmaSpatial, bilateralSigmaL);

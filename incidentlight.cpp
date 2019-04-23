@@ -9,7 +9,7 @@ std::vector<Vector3f> incidentlight::inPaint(ImageReader mask, std::vector<Vecto
 {
     int xMin = mask.getXMin();
     int xMax = mask.getXMax();
-
+    std::cout << xMin << " " << xMax << std::endl;
     std::vector<Vector3f> result;
 
     for (int i = 0; i < mask.getImageHeight(); i++) {

@@ -43,9 +43,10 @@ int main(int argc, char *argv[])
 
     std::vector<Vector3f> inpainting = incidentObj.inPaint(mask, background.toVector());
 
-    std::cout << "inpainting" << std::endl;
+
     int cols = im.getImageWidth();
     int rows = im.getImageHeight();
+    std::cout << "inpainting " << rows << " " << cols << std::endl;
     QImage output(cols, rows, QImage::Format_RGB32);
     QRgb *inpainted = reinterpret_cast<QRgb *>(output.bits());
     for(int i = 0; i < rows; i++){

@@ -11,107 +11,102 @@ from scipy import ndimage
 
 #https://www.peterkovesi.com/papers/ai97.pdf
 #https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=1527851
-mask = img_as_float(color.rgb2gray(io.imread("/Users/purvigoel/224Final/images/bunny_desired.png")))
-mask[mask > 0.1] = 1
-mask[mask < 0.9] = 0
-# mask[mask < 0.5] = 0
-io.imsave("/Users/purvigoel/224Final/images/bunny_desired.png", img_as_ubyte(mask))
+mask = color.rgb2gray(io.imread("/Users/purvigoel/224Final/images/han_mask.jpg"))
+image = (io.imread("/Users/purvigoel/224Final/images/han2.png"))
+image = color.rgb2gray(image)
+#image[mask < 0.05] = -1000
+#image[image > 0.9] = -1000
+image[image < 0.01] = -1000
+imageFFT = fft.fft2(image)
 
-# image = (io.imread("/Users/purvigoel/224Final/images/op.png"))
-# image = color.rgb2gray(image)
-# image[mask < 0.2] = -1000
-# #image[image > 0.9] = -1000
-# image[image < 0.01] = -1000
-# imageFFT = fft.fft2(image)
+scales = 2
+orientations = 12
 
-# scales = 2
-# orientations = 4
+sigmaF = 0.55 #tune
+wavelengthIncrement = 1.3
+thetaStd = np.pi / orientations / 1.2
 
-# sigmaF = 0.55 #tune
-# wavelengthIncrement = 3
-# thetaStd = np.pi / orientations / 1.2
+phaseSymmetry = np.zeros((image.shape[0], image.shape[1]))
 
-# phaseSymmetry = np.zeros((image.shape[0], image.shape[1]))
+symmetryTotal = np.zeros((image.shape[0], image.shape[1]))
+amplitudeTotal = np.zeros((image.shape[0], image.shape[1]))
+noiseAtOrientation = np.zeros((image.shape[0], image.shape[1]))
+floor =  np.zeros((image.shape[0], image.shape[1]))
 
-# symmetryTotal = np.zeros((image.shape[0], image.shape[1]))
-# amplitudeTotal = np.zeros((image.shape[0], image.shape[1]))
-# noiseAtOrientation = np.zeros((image.shape[0], image.shape[1]))
-# floor =  np.zeros((image.shape[0], image.shape[1]))
+bank = []
+for a in range(1,orientations + 1):
+	centerAngle = (a - 1) * np.pi/orientations
 
-# bank = []
-# for a in range(1,orientations + 1):
-# 	centerAngle = (a - 1) * np.pi/orientations
+	print(a)
+	wavelength = 7
 
-# 	print(a)
-# 	wavelength = 7
+	symmetryAtOrientation = np.zeros((image.shape[0], image.shape[1]))
+	amplitudeAtOrientation = np.zeros((image.shape[0], image.shape[1]))
+	kernels = []
+	for n in range(scales):
+		kernel = np.zeros((image.shape[0], image.shape[1]))
+		centerFrequency = 1/wavelength
+		for i in range(kernel.shape[0]):
+			for j in range(kernel.shape[1]):
+				y = i - (kernel.shape[0]/2)
+				x = j-(kernel.shape[1]/2)
 
-# 	symmetryAtOrientation = np.zeros((image.shape[0], image.shape[1]))
-# 	amplitudeAtOrientation = np.zeros((image.shape[0], image.shape[1]))
-# 	kernels = []
-# 	for n in range(scales):
-# 		kernel = np.zeros((image.shape[0], image.shape[1]))
-# 		centerFrequency = 1/wavelength
-# 		for i in range(kernel.shape[0]):
-# 			for j in range(kernel.shape[1]):
-# 				y = i - (kernel.shape[0]/2)
-# 				x = j-(kernel.shape[1]/2)
+				normalizedY = y / (kernel.shape[0]/2)
+				normalizedX = x / (kernel.shape[1]/2)
 
-# 				normalizedY = y / (kernel.shape[0]/2)
-# 				normalizedX = x / (kernel.shape[1]/2)
+				normalizedRadius = math.sqrt(normalizedY * normalizedY + normalizedX * normalizedX)
 
-# 				normalizedRadius = math.sqrt(normalizedY * normalizedY + normalizedX * normalizedX)
+				elementRadial = np.exp(-1 * np.power( (normalizedRadius/ (centerFrequency / 0.5)),2) / (2 * (sigmaF) * (sigmaF)) )
+				theta = math.atan2(-y,x)
+				deltaSin = math.sin(theta) * math.cos(centerAngle) - math.cos(theta) * math.sin(centerAngle)
+				deltaCosine = math.cos(theta) * math.cos(centerAngle) + math.sin(theta) * math.sin(centerAngle)
 
-# 				elementRadial = np.exp(-1 * np.power( (normalizedRadius/ (centerFrequency / 0.5)),2) / (2 * (sigmaF) * (sigmaF)) )
-# 				theta = math.atan2(-y,x)
-# 				deltaSin = math.sin(theta) * math.cos(centerAngle) - math.cos(theta) * math.sin(centerAngle)
-# 				deltaCosine = math.cos(theta) * math.cos(centerAngle) + math.sin(theta) * math.sin(centerAngle)
+				deltaTheta = abs(math.atan2(deltaSin, deltaCosine))
 
-# 				deltaTheta = abs(math.atan2(deltaSin, deltaCosine))
+				elementAngular = np.exp((-1 * deltaTheta * deltaTheta) / (2 * thetaStd * thetaStd))
 
-# 				elementAngular = np.exp((-1 * deltaTheta * deltaTheta) / (2 * thetaStd * thetaStd))
-
-# 				kernel[i, j] = elementAngular * elementRadial
-# 				if(kernel[i,j] < 0.001):
-# 					kernel[i,j] = 0
-# 		kernel = fft.fftshift(kernel)
-# 		kernels.append(kernel)
-# 		wavelength = wavelength * wavelengthIncrement
+				kernel[i, j] = elementAngular * elementRadial
+				if(kernel[i,j] < 0.001):
+					kernel[i,j] = 0
+		kernel = fft.fftshift(kernel)
+		kernels.append(kernel)
+		wavelength = wavelength * wavelengthIncrement
 	
-# 	bank.append(kernels)
+	bank.append(kernels)
 
 
-# def calculate(imageFFT, phaseSymmetry, symmetryTotal, amplitudeTotal):
-# 	for a in range(1,orientations + 1):
-# 		#print(a)
-# 		symmetryAtOrientation = np.zeros((image.shape[0], image.shape[1]))
-# 		amplitudeAtOrientation = np.zeros((image.shape[0], image.shape[1]))
-# 		for n in range(scales):		
-# 			kernel = bank[a - 1][n]		
-# 			convolved = imageFFT * kernel
-# 			s1 = np.array(kernel.shape)
-# 			s2 = np.array(imageFFT.shape)
-# 			convolved = fft.ifft2(convolved)
+def calculate(imageFFT, phaseSymmetry, symmetryTotal, amplitudeTotal):
+	for a in range(1,orientations + 1):
+		#print(a)
+		symmetryAtOrientation = np.zeros((image.shape[0], image.shape[1]))
+		amplitudeAtOrientation = np.zeros((image.shape[0], image.shape[1]))
+		for n in range(scales):		
+			kernel = bank[a - 1][n]		
+			convolved = imageFFT * kernel
+			s1 = np.array(kernel.shape)
+			s2 = np.array(imageFFT.shape)
+			convolved = fft.ifft2(convolved)
 			
-# 			evens = np.real(convolved)
-# 			odds = np.imag(convolved)
-# 			# muR = sigmaF * math.sqrt(np.pi/2)
-# 			# sigma2R = (4 - np.pi) * sigmaF * sigmaF/ 2
-# 			# sigmaR = math.sqrt(sigma2R)
-# 			# T = muR + scales * sigmaR
-# 			amplitude = np.sqrt(np.power(evens, 2) + np.power(odds, 2)) 
+			evens = np.real(convolved)
+			odds = np.imag(convolved)
+			# muR = sigmaF * math.sqrt(np.pi/2)
+			# sigma2R = (4 - np.pi) * sigmaF * sigmaF/ 2
+			# sigmaR = math.sqrt(sigma2R)
+			# T = muR + scales * sigmaR
+			amplitude = np.sqrt(np.power(evens, 2) + np.power(odds, 2)) 
 			
-# 			amplitudeAtOrientation += amplitude
-# 			symmetryAtOrientation += np.maximum((np.abs(evens) - np.abs(odds))  , floor)
+			amplitudeAtOrientation += amplitude
+			symmetryAtOrientation += np.maximum((np.abs(evens) - np.abs(odds))  , floor)
 		
-# 		amplitudeTotal += np.add(amplitudeAtOrientation, 0.00001)
-# 		symmetryTotal += symmetryAtOrientation
+		amplitudeTotal += np.add(amplitudeAtOrientation, 0.00001)
+		symmetryTotal += symmetryAtOrientation
 
-# 	phaseSymmetry = np.divide(symmetryTotal , amplitudeTotal)
-# 	phaseSymmetry[mask < 0.2] = 0.0
-# 	return phaseSymmetry
+	phaseSymmetry = np.divide(symmetryTotal , amplitudeTotal)
+	#phaseSymmetry[mask < 0.05] = 0.0
+	return phaseSymmetry
 
-# phaseSymmetry = calculate(imageFFT, phaseSymmetry, symmetryTotal, amplitudeTotal)
-# io.imsave("/Users/purvigoel/224Final/images/phaseSymmetry.jpg", img_as_ubyte(phaseSymmetry))
+phaseSymmetry = calculate(imageFFT, phaseSymmetry, symmetryTotal, amplitudeTotal)
+io.imsave("/Users/purvigoel/224Final/images/phaseSymmetry.jpg", img_as_ubyte(phaseSymmetry))
 
 # originalCaustic = phaseSymmetry
 
