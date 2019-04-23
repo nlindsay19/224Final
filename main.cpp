@@ -32,6 +32,10 @@ int main(int argc, char *argv[])
     ImageReader background(backgroundFile);
     std::cout << "read background" << std::endl;
 
+    QString marbleFile = "images/marble.jpg";
+    ImageReader marble(marbleFile);
+
+
     std::vector<float> depth;
     std::vector<Eigen::Vector3f> normals;
     ShapeEstimator se;
@@ -62,9 +66,28 @@ int main(int argc, char *argv[])
     }
     output.save("images/inpaint.png");
 
+
+
     Retexture retextureObj;
+    std::vector<Vector3f> blurred = retextureObj.applyGaussianFilter(inpainting, cols, rows, 0);
+    QImage outputBlur(cols, rows, QImage::Format_RGB32);
+    QRgb *inpaintedBlur = reinterpret_cast<QRgb *>(outputBlur.bits());
+    for(int i = 0; i < rows; i++){
+        for(int j = 0; j < cols; j++){
+            int index = im.indexAt(i, j);
+            Vector3f color = blurred[index];
+            float colorR = color(0);
+            float colorG = color(1);
+            float colorB = color(2);
+            QColor colorOut = QColor(int(colorR), int(colorG), int(colorB));
+            inpaintedBlur[im.indexAt(i, j)] = colorOut.rgb();
+        }
+    }
+    outputBlur.save("images/inpaintBlur.png");
+    std::cout<< "Did blur" << std::endl;
+
     std::vector<Vector3f> retexturing;
-    retextureObj.calculate(inpainting, im.toVector(), gradientX, gradientY, retexturing, mask );
+    retextureObj.calculate(marble.toVector(), inpainting, im.toVector(), gradientX, gradientY, retexturing, mask );
 
     Histogram hist(se.getLuminances());
     std::vector<int> highlights = hist.findHighlights();
