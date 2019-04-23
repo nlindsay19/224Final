@@ -10,7 +10,7 @@ Retexture::Retexture()
 {
 }
 
-void Retexture::calculate(std::vector<Vector3f> T, std::vector<Vector3f> image, std::vector<float> deltaX, std::vector<float> deltaY, std::vector<Vector3f> &result, ImageReader mask)
+void Retexture::calculate(std::vector<Vector3f> T, std::vector<Vector3f> background, std::vector<Vector3f> image, std::vector<float> deltaX, std::vector<float> deltaY, std::vector<Vector3f> &result, ImageReader mask)
 {
     int width = mask.getImageWidth();
     std::cout << width << std::endl;
@@ -22,7 +22,7 @@ void Retexture::calculate(std::vector<Vector3f> T, std::vector<Vector3f> image, 
 
         if(QColor(mask.pixelAt(y,x)).red() < 150) {
             // Black part of the mask, don't do anything
-            result.push_back(T[i]);
+            result.push_back(background[i]);
             continue;
         }
 
@@ -57,6 +57,92 @@ void Retexture::calculate(std::vector<Vector3f> T, std::vector<Vector3f> image, 
     }
 
 }
+
+
+
+std::vector<Vector3f> Retexture::applyGaussianFilter(std::vector<Vector3f> inpainted, int width, int height, int frosty)
+{
+
+      std::vector<Vector3f> temp_image (width * height);
+      std::fill(temp_image.begin(), temp_image.end(), Vector3f(0, 0, 0));
+      double total_weight;
+      double val;
+
+      if (!frosty) {
+          // Not doin it
+          return inpainted;
+      }
+
+      // Create the kernel
+
+      double sigma = 5.0;
+      double s = sigma * 3;
+      double kernel[(int) ((s * 2) + 1)];
+
+
+      double coefficient = 1 / (sigma * sqrt(2 * M_PI));
+      double exponent;
+      double x;
+      double gaussian;
+      for (int i = 0; i < (2 * sigma * 3) + 1; ++i)
+      {
+        x = fabs(s - i);
+        exponent = (-1 * x * x) / (2 * sigma * sigma);
+        gaussian = coefficient * pow(M_E, exponent);
+        kernel[i] = gaussian;
+      }
+
+
+      // Changing bounds so don't have to deal with edges now
+      for (int i = 0; i < width; i++) {
+        for (int j = 0;  j < height; j++) {
+
+          val = 0;
+          total_weight = 0;
+
+          int index1D = width*j + i;
+
+          for (int dx = -s; dx <= s; dx++) {
+              if (dx+i >= 0 && dx+i < width) {
+                  int origIndex = width * j + (i + dx);
+                  temp_image[index1D] += (inpainted[origIndex] * kernel[(int) (dx+s)]);
+                  total_weight += kernel[(int) (dx+s)];
+              }
+          }
+
+          temp_image[index1D] = temp_image[index1D] / total_weight;
+          //std::cout << temp_image[index1D] << std::endl;
+
+        }
+      }
+
+      std::vector<Vector3f> temp_image2 (width * height);
+      std::fill(temp_image2.begin(), temp_image2.end(), Vector3f(0, 0, 0));
+
+      // Changing bounds so don't have to deal with edges now
+      for (int i = 0; i < width; i++) {
+        for (int j = 0;  j < height; j++) {
+
+          val = 0;
+          total_weight = 0;
+          int index1D = width*j + i;
+
+          for (int dy = -s;  dy <= s; dy++) {
+              if (dy+j >= 0 && dy+j < height) {
+                  int origIndex = width*(j+dy) + i;
+                  temp_image2[index1D] += (temp_image[origIndex] * kernel[(int) (dy+s)]);
+                  total_weight += kernel[(int) (dy+s)];
+              }
+          }
+
+          temp_image2[index1D] = (temp_image2[index1D] / total_weight);//Vector3f(Vector3f(0.7, 0.4, 0.4).array() * (temp_image2[index1D] / total_weight).array());
+        }
+      }
+
+
+    return temp_image2;
+}
+
 
 void Retexture::setF(float f) {
     m_f = f;
