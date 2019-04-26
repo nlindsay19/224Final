@@ -5,6 +5,7 @@
 
 ImageReader::ImageReader(QString filename)
 {
+    std::cout << "loading " << filename.toStdString() << std::endl;
     bool success = m_image.load(filename);
     if(success){
         m_imageData = reinterpret_cast<QRgb *>(m_image.bits());
@@ -12,7 +13,6 @@ ImageReader::ImageReader(QString filename)
     } else {
         std::cout << "Could not read image." << std::endl;
     }
-
     findMinAndMax();
 }
 
@@ -53,6 +53,7 @@ void ImageReader::findMinAndMax()
 {
     int min = 10000000000;
     int max = -1;
+
     for (int i = 0; i < getImageHeight(); i++) {
         for (int j = 0; j < getImageWidth(); j++) {
             if (QColor(pixelAt(i,j)).red() > 150) {
@@ -65,6 +66,7 @@ void ImageReader::findMinAndMax()
             }
         }
     }
+
     assert(max > min);
     m_xMax = max;
     m_xMin = min;

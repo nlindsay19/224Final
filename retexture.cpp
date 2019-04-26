@@ -58,7 +58,73 @@ void Retexture::calculate(std::vector<Vector3f> T, std::vector<Vector3f> backgro
 
 }
 
+void Retexture::calculateMixedMaterial(std::vector<Vector3f> glass,std::vector<Vector3f> notGlass, std::vector<Vector3f> background, std::vector<Vector3f> image, std::vector<float> deltaX, std::vector<float> deltaY, std::vector<Vector3f> &result, ImageReader mask, ImageReader materialMask, ImageReader glassColors)
+{
+    int width = mask.getImageWidth();
+    std::cout << width << std::endl;
+    float cmaxAverage = 0.0f;
+    std::vector<Vector3f> T = glass;
+    for (int i = 0; i < T.size(); i++) {
+        int x = i % width;
+        int y = i / width;
 
+        if(QColor(mask.pixelAt(y,x)).red() < 150) {
+            // Black part of the mask, don't do anything
+
+            // if image isn't 0, push back image.
+                result.push_back(background[i]);
+
+            continue;
+        }
+
+        if(QColor(materialMask.pixelAt(y,x)).red() < 50 && QColor(materialMask.pixelAt(y,x)).blue() < 50 && QColor(materialMask.pixelAt(y,x)).green() < 50){
+           T = notGlass;
+           m_s = 20.0f;
+        } else {
+            T = glass;
+            m_s = 50.0f;
+        }
+
+        int t_x = fmod(float(x) + m_s*deltaX[i], width);
+        int t_y = fmod(float(y) + m_s*deltaY[i], mask.getImageHeight());
+        Vector3f t_value = T[t_y*width + t_x];
+        Vector3f resultValue = (1.f - m_f) * t_value + m_f * image[i];
+
+        float resultAverage = (resultValue[0] + resultValue[1] + resultValue[2])/3.0f;
+        if(cmaxAverage < resultAverage){
+            cmaxAverage = resultAverage;
+        }
+        result.push_back(resultValue);
+
+    }
+    std::cout << cmaxAverage << std::endl;
+
+    T = glass;
+    for (int i = 0; i < T.size(); i++) {
+        int x = i % width;
+        int y = i / width;
+
+        if(QColor(mask.pixelAt(y,x)).red() < 150) {
+            // Black part of the mask, don't do anything
+            continue;
+        }
+        if(QColor(materialMask.pixelAt(y,x)).red() < 50 && QColor(materialMask.pixelAt(y,x)).blue() < 50 && QColor(materialMask.pixelAt(y,x)).green() < 50) {
+            // Black part of the mask, don't do anything
+            continue;
+        }
+        QColor stainedGlass = QColor(glassColors.pixelAt(y,x));
+
+        Vector3f darkness = Vector3f(2.0f,2.0f,2.0f);
+      //  Vector3f color = Vector3f(float(stainedGlass.red())/255.0f,float(stainedGlass.green())/255.0f,float(stainedGlass.blue())/255.0f);
+        Vector3f color = Vector3f(1.0f,1.0f,1.0f);
+        Vector3f resultValue = result[i];
+        resultValue[0] = fmin(pow((resultValue[0] * color[0]/ cmaxAverage) , darkness[0]) * 255.0f,255.0f);
+        resultValue[1] = fmin(pow((resultValue[1] * color[1]/ cmaxAverage) , darkness[1]) * 255.0f,255.0f);
+        resultValue[2] = fmin(pow((resultValue[2] * color[2]/ cmaxAverage) , darkness[2]) * 255.0f, 255.0f);
+        result[i] = resultValue;
+    }
+
+}
 
 std::vector<Vector3f> Retexture::applyGaussianFilter(std::vector<Vector3f> inpainted, int width, int height, int frosty)
 {

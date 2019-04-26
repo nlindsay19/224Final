@@ -24,6 +24,7 @@ int main(int argc, char *argv[])
 
     QString imageFile = "images/han.jpg";
     ImageReader im(imageFile);
+
     std::cout << "read image 1" << std::endl;
     QString maskFile = "images/han_mask.jpg";
     ImageReader mask(maskFile);
@@ -35,6 +36,10 @@ int main(int argc, char *argv[])
     QString marbleFile = "images/marble.jpg";
     ImageReader marble(marbleFile);
 
+//    QString stainedGlassFile = "images/color.jpg";
+//    ImageReader stainedGlass(stainedGlassFile);
+//    QString materialMaskFile = "images/ts.png";
+//    ImageReader materialMask(materialMaskFile);
 
     std::vector<float> depth;
     std::vector<Eigen::Vector3f> normals;
@@ -88,10 +93,11 @@ int main(int argc, char *argv[])
 
     std::vector<Vector3f> retexturing;
     retextureObj.calculate(marble.toVector(), inpainting, im.toVector(), gradientX, gradientY, retexturing, mask );
+    //retextureObj.calculateMixedMaterial(background.toVector(), marble.toVector(), background.toVector(), im.toVector(), gradientX, gradientY, retexturing, mask , materialMask, stainedGlass);
 
     Histogram hist(se.getLuminances());
     std::vector<int> highlights = hist.findHighlights();
-
+    std::cout << "found highlights 2" << std::endl;
     QImage outputF(cols, rows, QImage::Format_RGB32);
     QRgb *retextured = reinterpret_cast<QRgb *>(outputF.bits());
     for(int i = 0; i < rows; i++){
@@ -108,13 +114,13 @@ int main(int argc, char *argv[])
 
     std::vector<Vector3f> originalImage = im.toVector();
     std::cout << "Highlights size: " << highlights.size() << std::endl;
-    for (int i = 0; i < highlights.size(); i++) {
-        int index = highlights[i];
-        Vector3f originalVal = originalImage[index];
-        int gray = (int(originalVal[0]) + int(originalVal[1]) + int(originalVal[2]))/3;
-        QColor color = QColor(gray, gray, gray);
-        retextured[index] = color.rgb();
-    }
+//    for (int i = 0; i < highlights.size(); i++) {
+//        int index = highlights[i];
+//        Vector3f originalVal = originalImage[index];
+//        int gray = (int(originalVal[0]) + int(originalVal[1]) + int(originalVal[2]))/3;
+//        QColor color = QColor(gray, gray, gray);
+//        retextured[index] = color.rgb();
+//    }
     outputF.save("images/retextured.png");
 
 

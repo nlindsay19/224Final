@@ -182,11 +182,11 @@ std::vector<Vector3f> ShapeEstimator::gradientField(ImageReader mask, std::vecto
     assert(gradientX.size() == gradientY.size());
 
     for(int i = 0; i < gradientX.size(); i++){
-        gradientX[i] = gradientReshapeRecursive(gradientX[i]/gxNormalize, 1) * gxNormalize;
+        gradientX[i] = gradientReshapeRecursive(gradientX[i]/gxNormalize, 10) * gxNormalize;
 
     }
     for(int i = 0; i < gradientY.size(); i++){
-        gradientY[i] = gradientReshapeRecursive(gradientY[i]/gyNormalize, 1) * gyNormalize;
+        gradientY[i] = gradientReshapeRecursive(gradientY[i]/gyNormalize, 10) * gyNormalize;
     }
 
     std::vector<Vector3f> normals;
