@@ -7,16 +7,18 @@ from skimage import io, color, transform, img_as_ubyte, img_as_float
 from matplotlib import pyplot
 import random
 from scipy import ndimage
+from texture_gen import proposal
 
 filePath = "/Users/purvigoel/224Final/images/"
-maskPath = filePath + "bunny_mask.png"
-imagePath = filePath + "bunny.png"
-desiredPath = filePath + "bunny_desired.png"
+maskPath = filePath + "op.png"
+imagePath = filePath + "circle.jpg"
+desiredPath = filePath + "desired3.jpg"
 #https://www.peterkovesi.com/papers/ai97.pdf
 #https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=1527851
 mask = color.rgb2gray(img_as_float(io.imread(maskPath)))
 image =  img_as_float(io.imread(imagePath))
 image = color.rgb2gray(image)
+
 
 for i in range(0, image.shape[0]):
 	for j in range(0, image.shape[1]):
@@ -47,7 +49,7 @@ for a in range(1,orientations + 1):
 	centerAngle = (a - 1) * np.pi/orientations
 
 	print(a)
-	wavelength = 10 #3
+	wavelength = 10 #10
 
 	symmetryAtOrientation = np.zeros((image.shape[0], image.shape[1]))
 	amplitudeAtOrientation = np.zeros((image.shape[0], image.shape[1]))
@@ -131,7 +133,8 @@ def printImage(image, filename):
 	saveImage[image >1] = 1
 	io.imsave(filename, img_as_ubyte(saveImage))
 
-def vectorToImage(image, vector):
+
+def vectorToImage(image, vector, vectorField):
 	new = image.copy()
 	circles = np.zeros((image.shape[0], image.shape[1]))
 	for i in range(0, len(vector), 5):
@@ -140,36 +143,63 @@ def vectorToImage(image, vector):
 		lineLength = vector[i+2]
 		angle = vector[i + 3]
 		width = vector[i+4]
-		taper = width
-		tInc = width/lineLength
-		if(abs(angle) <= math.pi/4 or abs(angle) > 3 * math.pi/4):
-			for lx in range(lineLength):
-				yCoordFloor = math.floor(lx * math.tan(angle))
-				yCoordCeil = math.ceil(lx * math.tan(angle))
 
-				for w in range(math.ceil(taper)):
-					if(abs(y + w + yCoordFloor) < image.shape[0] and x + lx < image.shape[1]):
-						new[y + yCoordFloor + w][lx + x] = 0
-					if(abs(y + w + yCoordCeil) < image.shape[0] and x + lx < image.shape[1]):
-						new[y + yCoordCeil + w][lx + x] = 0
-		else:
-			for ly in range(lineLength):
-				xCoordFloor = math.floor(ly / math.tan(angle))
-				xCoordCeil = math.ceil(ly / math.tan(angle))
+		currX = x
+		currY = y
+		for l in range(lineLength):
+			dy = 0
+			if(lineLength > 30):
+				dy = vectorField[currY, currX]
+			nextX = currX + 1
+			nextY = min(max(currY + dy, 0), image.shape[0] - 1)
+			for w in range(width):
+				if(nextX < image.shape[1] and (nextY + w) < image.shape[0]):
+					new[int(nextY + w), int(nextX)] = 0
+			currX = int(nextX)
+			currY = int(nextY)
+
+
+
+		# if(abs(angle) <= math.pi/4 or abs(angle) > 3 * math.pi/4):
+		# 	for lx in range(lineLength):
+		# 		yCoordFloor = math.floor(lx * math.tan(angle))
+		# 		yCoordCeil = math.ceil(lx * math.tan(angle))
+
+		# 		for w in range(math.ceil(width)):
+		# 			if(abs(y + w + yCoordFloor) < image.shape[0] and x + lx < image.shape[1]):
+		# 				new[y + yCoordFloor + w][lx + x] = 0
+		# 			if(abs(y + w + yCoordCeil) < image.shape[0] and x + lx < image.shape[1]):
+		# 				new[y + yCoordCeil + w][lx + x] = 0
+		# else:
+		# 	for ly in range(lineLength):
+		# 		xCoordFloor = math.floor(ly / math.tan(angle))
+		# 		xCoordCeil = math.ceil(ly / math.tan(angle))
 				
-				for w in range(math.ceil(taper)):
-					if(abs(x + w + xCoordFloor) < image.shape[1] and y + ly < image.shape[0]):
-						new[y + ly ][xCoordFloor + x + w] = 0
-					if(abs(x + w + xCoordCeil) < image.shape[1] and y + ly < image.shape[0]):
-						new[y + ly][xCoordCeil + x + w] = 0
+		# 		for w in range(math.ceil(width)):
+		# 			if(abs(x + w + xCoordFloor) < image.shape[1] and y + ly < image.shape[0]):
+		# 				new[y + ly ][xCoordFloor + x + w] = 0
+		# 			if(abs(x + w + xCoordCeil) < image.shape[1] and y + ly < image.shape[0]):
+						# new[y + ly][xCoordCeil + x + w] = 0
 	for i in range(0, image.shape[0]):
 		for j in range(0, image.shape[1]):
 			if(mask[i,j] < 0.2):
 				new[i, j] = image[i,j]
 	return new
 
-def shiftOldVector(bestVector, xmin, xmax, ymin, ymax):
+def shiftOldVector(bestVector, xmin, xmax, ymin, ymax, vectorField):
 	vector = []
+	for i in range(0, vectorField.shape[0]):
+		for j in range(1, vectorField.shape[1]):
+			r = random.randint(1, 5)
+			angle = vectorField[i, j]
+			if(r < 4):
+				change = random.randint(-2, 2)				
+				angle = change
+				# if angle > 5:
+				# 	angle = 5 - abs(change)
+				# if angle <  -5:
+				# 	angle = -5 + abs(change)
+			vectorField[i,j] = angle
 
 	for i in range(0, len(bestVector), 5):
 		x = bestVector[i]
@@ -177,54 +207,54 @@ def shiftOldVector(bestVector, xmin, xmax, ymin, ymax):
 		lineLength = bestVector[i+2]
 		angle = bestVector[i+3]
 		width = bestVector[i+4]
+		if(lineLength > 30):
+			r = random.randint(1, 5)
+			# if(r < 2):
+			# 	change = random.randint(-5, 5)
+			# 	x += change
+			# 	if x < xmin:
+			# 		x += xmin
+			# 	elif x > xmax:
+			# 		x -= xmax
+			r = random.randint(1, 5)
+			# if(r < 2):
+			# 	change = random.randint(-5,5) 
+			# 	y += change
+			# 	if y < ymin:
+			# 		y += ymin
+			# 	elif y > ymax:
+			# 		y -= ymax
 
-		r = random.randint(1, 5)
-		if(r < 2):
-			change = random.randint(-5, 5)
-			x += change
-			if x < xmin:
-				x += xmin
-			elif x > xmax:
-				x -= xmax
-		r = random.randint(1, 5)
-		if(r < 2):
-			change = random.randint(-5,5) 
-			y += change
-			if y < ymin:
-				y += ymin
-			elif y > ymax:
-				y -= ymax
-
-		r = random.randint(1, 5)
-		if(r < 2):
-			change = random.randint(-2,2)
-			lineLength += change
-			if lineLength <= 1:
-				lineLength += abs(change)
-			if lineLength > 100: 
-				lineLength -= abs(change)
-		r = random.randint(1, 5)
-		if(r < 2):
-			change = random.uniform(-math.pi/8, math.pi/8)
-			angle += change
-			if angle < -1 * math.pi:
-				angle = -1 * math.pi + abs(change)
-			if angle >  math.pi:
-				angle = math.pi - abs(change)
-		r = random.randint(1, 5)
-		if(r < 2):
-			change = random.randint(-1, 1)
-			width += change
-			if width <= 1:
-				width += abs(change)
-			if width >  8:
-				width -= abs(change)
+			r = random.randint(1, 5)
+			if(r < 2):
+				change = random.randint(-2,2)
+				lineLength += change
+				if lineLength <= 1:
+					lineLength += abs(change)
+				if lineLength > 100: 
+					lineLength -= abs(change)
+			r = random.randint(1, 5)
+			if(r < 2):
+				change = random.uniform(-math.pi/8, math.pi/8)
+				angle += change
+				if angle < -1 * math.pi:
+					angle = -1 * math.pi + abs(change)
+				if angle >  math.pi:
+					angle = math.pi - abs(change)
+			r = random.randint(1, 5)
+			if(r < 2):
+				change = random.randint(-1, 1)
+				width += change
+				if width <= 1:
+					width += 2 * abs(change)
+				if width >  8:
+					width -= abs(change)
 		vector.append(x)
 		vector.append(y)
 		vector.append(lineLength)
 		vector.append(angle)
 		vector.append(width)
-	return vector
+	return vector, vectorField
 
 def maskMinMax(mask):
 	minX = 10000
@@ -283,7 +313,7 @@ def findStartVector(image, desired, mask, xmin, xmax):
 			scanX = startX + 1
 			while desired[i, scanX] < 0.2:
 				scanX += 1			
-				if(scanX == endX):
+				if(scanX >= endX):
 					break
 			length = scanX - startX
 
@@ -303,23 +333,33 @@ desired = img_as_float(color.rgb2gray(desired))
 desired[desired < 0.2] = 0
 desired[desired > 0.2] = 1
 
+blurDesired = filters.gaussian(desired, 5)
+blurDesired[blurDesired > 0.05] = 1
+blurDesired[blurDesired < 0.5] = 0
+printImage(blurDesired, filePath + "blurdesired.jpg")
+
+
 xmin, xmax, ymin, ymax = maskMinMax(mask)
 dxmin, dxmax, dymin, dymax = maskMinMax(desired)
 
+startField = np.zeros((image.shape[0], image.shape[1]))
 startVector = findStartVector(image, desired, mask, xmin, xmax)
-startImage = vectorToImage(image, startVector)
+#startImage = vectorToImage(image, startVector, startField)
+startImage = filters.gaussian(image, 1)
+
+
+startImage = filters.gaussian(image, 3)
+startImage[startImage < 0.8] = 0
+startImage[startImage > 0] = 1
+startImage = filters.gaussian(startImage, 1)
+#startImage[desired > 0.5] = 1
 printImage(startImage, filePath + "start.jpg")
 
 startImageFFT = fft.fft2(startImage)
 phaseSymmetryStart = calculatePhaseSymmetry(startImageFFT, phaseSymmetry, symmetryTotal, amplitudeTotal)
 io.imsave(filePath + "phaseSymmetryStart.jpg", img_as_ubyte(phaseSymmetryStart))
 
-for i in range(0, 10):
-	ind = random.randint(0, len(startVector) - 1)
-	ind = ind - (ind % 5)
-	for t in range(5):
-		startVector.append(startVector[ind + t])
-
+1/0
 image = (io.imread(imagePath))
 image = color.rgb2gray(image)
 image = img_as_float(image)
@@ -336,7 +376,7 @@ for i in range(0, image.shape[0]):
 bestDiff = 10000000
 bestImage = np.zeros((image.shape[0], image.shape[1]))
 bestCaustic = np.zeros((image.shape[0], image.shape[1]))
-
+bestField = np.zeros((image.shape[0], image.shape[1]))
 success = 0
 attempt = 0
 
@@ -347,40 +387,42 @@ eps = 1
 matchRadius = 50
 print("starting random search")
 
-while(success < 500 and attempt < 200 and matchRadius > 25):
-	r = random.randint(1, 10)
+while(success < 500 and attempt < 200):
+	matchRadius = 1
+	# r = random.randint(1, 10)
 	attempt += 1
-	vector = []
-	if(r < 5 or len(bestVector) == 0):
-		vector = shiftOldVector(startVector, xmin, xmax, ymin, ymax)
-		proposal = vectorToImage(image, vector)
-	else:
-		vector = shiftOldVector(bestVector, xmin, xmax, ymin, ymax)
-		proposal = vectorToImage(image, vector)
+	# vectorField = []
+	# vector = []
 
-	proposalFFT = fft.fft2(filters.gaussian(proposal, 3))
+
+	prop = bestField #proposal(desired, mask)
+	for i in range(0, prop.shape[0]):
+		for j in range(0, prop.shape[1]):
+			if(mask[i,j] < 0.2):
+				if(i % 2):
+					prop[i,j] = -2
+				else:
+					prop[i,j] = -1
+	# if(r < 5 or len(bestVector) == 0):
+	# 	newField = np.zeros((image.shape[0], image.shape[1]))
+	# 	vector, vectorField = shiftOldVector(startVector, xmin, xmax, ymin, ymax, newField)
+	# 	proposal = vectorToImage(image, vector, vectorField)
+	# else:
+	# 	vector, vectorField = shiftOldVector(bestVector, xmin, xmax, ymin, ymax, bestField)
+	# 	proposal = vectorToImage(image, vector, vectorField)
+
+	proposalFFT = fft.fft2(filters.gaussian(prop, 3))
 	symmetryTotal = np.zeros((image.shape[0], image.shape[1]))
 	amplitudeTotal = np.zeros((image.shape[0], image.shape[1]))
 	phaseSymmetry = np.zeros((image.shape[0], image.shape[1]))
 	caustic = calculatePhaseSymmetry(proposalFFT, phaseSymmetry, symmetryTotal, amplitudeTotal)		
 
+	causticCoarseEdges = caustic.copy()
+	causticCoarseEdges[blurDesired < 0.5] = 0
 
-	cropCaustic = caustic.copy()
-	cropCaustic[desired < 0.5] = 0
-	causticCoarseEdges = crop(caustic, mask, dxmin - matchRadius, \
-		dxmax + matchRadius , dymin - matchRadius, \
-		dymax + matchRadius)
-	
-	causticCoarseEdges[desired > 0.5] = 0
-	diff = 160000 * (np.sum(np.abs(cropCaustic - desired) ) + \
-		np.sum(np.abs(causticCoarseEdges ) ) ) /  np.sum(np.abs(proposal - startImage))
-
-
-	if attempt == 199:
-		matchRadius -= 10
-		print("shrinking radius to ", matchRadius)
-		attempt = 0
-
+	diff =  np.sum(np.abs(causticCoarseEdges - desired))
+	#print(diff)
+	print(attempt)
 	if attempt == 100 or attempt == 150 or attempt == 198:
 		print("attempt", attempt)
 		eps *= 1.5
@@ -391,9 +433,13 @@ while(success < 500 and attempt < 200 and matchRadius > 25):
 		print( diff, success)
 		attempt = 0
 		bestDiff = diff
-		bestImage = proposal.copy()
+		
+		bestImage = mask.copy()
+		bestImage[prop < 0.01] = 0
+
+		bestImage = prop.copy()
 		bestCaustic = caustic.copy()
-		bestVector = vector	
+
 
 	printcounter += 1
 	if(printcounter == 100):
