@@ -25,6 +25,8 @@ public:
 
 private:
     std::vector<float> m_luminances;
+    float m_curvature = 10.0f;
+    float m_bilateralSmoothing = 0.0f;
 };
 
 #endif // SHAPEESTIMATOR_H

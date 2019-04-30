@@ -11,7 +11,7 @@ using namespace Eigen;
 
 ShapeEstimator::ShapeEstimator()
 {
-
+    m_bilateralSmoothing = 0.008;
 }
 
 void ShapeEstimator::estimateShape(ImageReader imageIn, ImageReader mask, std::vector<float>& depthMap, std::vector<Vector3f>& normalMap, std::vector<float> &gradientX, std::vector<float> &gradientY){
@@ -26,7 +26,7 @@ void ShapeEstimator::estimateShape(ImageReader imageIn, ImageReader mask, std::v
 
     sigmoidalCompression(luminances, sigma);
     std::cout << rows << " " << cols << std::endl;
-    float bilateralSigmaSpatial = 0.004f * float(cols);
+    float bilateralSigmaSpatial = m_bilateralSmoothing * float(cols);
     float bilateralSigmaL = 255.0f;
     std::cout << "convolve" << std::endl;
     luminances = bf.convolve(imageIn, luminances, bilateralSigmaSpatial, bilateralSigmaL);
@@ -182,11 +182,11 @@ std::vector<Vector3f> ShapeEstimator::gradientField(ImageReader mask, std::vecto
     assert(gradientX.size() == gradientY.size());
 
     for(int i = 0; i < gradientX.size(); i++){
-        gradientX[i] = gradientReshapeRecursive(gradientX[i]/gxNormalize, 10) * gxNormalize;
+        gradientX[i] = gradientReshapeRecursive(gradientX[i]/gxNormalize, m_curvature) * gxNormalize;
 
     }
     for(int i = 0; i < gradientY.size(); i++){
-        gradientY[i] = gradientReshapeRecursive(gradientY[i]/gyNormalize, 10) * gyNormalize;
+        gradientY[i] = gradientReshapeRecursive(gradientY[i]/gyNormalize, m_curvature) * gyNormalize;
     }
 
     std::vector<Vector3f> normals;
