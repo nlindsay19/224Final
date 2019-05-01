@@ -69,9 +69,6 @@ int main(int argc, char *argv[])
             inpainted[im.indexAt(i, j)] = colorOut.rgb();
         }
     }
-    output.save("images/inpaint.png");
-
-
 
     Retexture retextureObj;
     std::vector<Vector3f> blurred = retextureObj.applyGaussianFilter(inpainting, cols, rows, 0);
@@ -92,7 +89,7 @@ int main(int argc, char *argv[])
     std::cout<< "Did blur" << std::endl;
 
     std::vector<Vector3f> retexturing;
-    retextureObj.calculate(marble.toVector(), inpainting, im.toVector(), gradientX, gradientY, retexturing, mask );
+    retextureObj.calculate(background.toVector(), inpainting, im.toVector(), gradientX, gradientY, retexturing, mask );
     //retextureObj.calculateMixedMaterial(background.toVector(), marble.toVector(), background.toVector(), im.toVector(), gradientX, gradientY, retexturing, mask , materialMask, stainedGlass);
 
     Histogram hist(se.getLuminances());
