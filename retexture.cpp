@@ -49,13 +49,43 @@ void Retexture::calculate(std::vector<Vector3f> T, std::vector<Vector3f> backgro
 
             continue;
         }
+        float darkness = m_darkness;
+        Vector3f glassColor = m_glassColor;
         Vector3f resultValue = result[i];
-        resultValue[0] = fmin(pow((resultValue[0] / cmaxAverage) , 1.8) * 255.0f,255.0f);
-        resultValue[1] = fmin(pow((resultValue[1] / cmaxAverage) , 1.8) * 255.0f,255.0f);
-        resultValue[2] = fmin(pow((resultValue[2] / cmaxAverage) , 1.8) * 255.0f, 255.0f);
+        resultValue[0] = fmin(pow((glassColor[0] * resultValue[0] / cmaxAverage) , darkness) * 255.0f,255.0f);
+        resultValue[1] = fmin(pow((glassColor[1] * resultValue[1] / cmaxAverage) , darkness) * 255.0f,255.0f);
+        resultValue[2] = fmin(pow((glassColor[2] * resultValue[2] / cmaxAverage) , darkness) * 255.0f, 255.0f);
         result[i] = resultValue;
     }
+}
 
+void Retexture::calculateTexture(std::vector<Vector3f> T, std::vector<Vector3f> background, std::vector<Vector3f> image, std::vector<float> deltaX, std::vector<float> deltaY, std::vector<Vector3f> &result, ImageReader mask)
+{
+    int width = mask.getImageWidth();
+    std::cout << width << std::endl;
+    float cmaxAverage = 0.0f;
+
+    for (int i = 0; i < T.size(); i++) {
+        int x = i % width;
+        int y = i / width;
+
+        if(QColor(mask.pixelAt(y,x)).red() < 150) {
+            // Black part of the mask, don't do anything
+            result.push_back(background[i]);
+            continue;
+        }
+
+        int t_x = fmod(float(x) + m_s*deltaX[i], width);
+        int t_y = fmod(float(y) + m_s*deltaY[i], mask.getImageHeight());
+        Vector3f t_value = T[t_y*width + t_x];
+        Vector3f resultValue = (1.f - m_f) * t_value + m_f * image[i];
+
+        float resultAverage = (resultValue[0] + resultValue[1] + resultValue[2])/3.0f;
+        if(cmaxAverage < resultAverage){
+            cmaxAverage = resultAverage;
+        }
+        result.push_back(resultValue);
+    }
 }
 
 void Retexture::calculateMixedMaterial(std::vector<Vector3f> glass,std::vector<Vector3f> notGlass, std::vector<Vector3f> background, std::vector<Vector3f> image, std::vector<float> deltaX, std::vector<float> deltaY, std::vector<Vector3f> &result, ImageReader mask, ImageReader materialMask, ImageReader glassColors)
@@ -141,7 +171,7 @@ std::vector<Vector3f> Retexture::applyGaussianFilter(std::vector<Vector3f> inpai
 
       // Create the kernel
 
-      double sigma = 5.0;
+      double sigma = m_frosty;
       double s = sigma * 3;
       double kernel[(int) ((s * 2) + 1)];
 

@@ -11,7 +11,7 @@ using namespace Eigen;
 
 ShapeEstimator::ShapeEstimator()
 {
-    m_bilateralSmoothing = 0.008;
+    m_bilateralSmoothing = 0.003f;
 }
 
 void ShapeEstimator::estimateShape(ImageReader imageIn, ImageReader mask, std::vector<float>& depthMap, std::vector<Vector3f>& normalMap, std::vector<float> &gradientX, std::vector<float> &gradientY){

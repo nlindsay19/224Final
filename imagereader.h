@@ -22,8 +22,9 @@ public:
     int getXMax();
 
     std::vector<Eigen::Vector3f> toVector();
+        QRgb *m_imageData;
 private:
-    QRgb *m_imageData;
+
     QString m_filename;
     QImage m_image;
     int m_xMin;
