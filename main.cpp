@@ -36,6 +36,7 @@ int main(int argc, char *argv[])
     mm.materialParams.diffuse = Vector3f(0.5, 0.5, 0.5);
     mm.materialParams.specular = Vector3f(0.5,0.5,0.5);
 
+
     mm.materialParams.s = 50;
     mm.materialParams.frosty = 5;
     mm.materialParams.glassColor = Vector3f(1.0,1.0,1.0);
