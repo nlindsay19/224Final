@@ -1,13 +1,13 @@
-#ifndef SHAPEESTIMATOR_H
-#define SHAPEESTIMATOR_H
+#ifndef SHAPEESTIMATION_H
+#define SHAPEESTIMATION_H
 #include "imagereader.h"
 #include "bilateralfilter.h"
 #include "Eigen/Dense"
 
-class ShapeEstimator
+class ShapeEstimation
 {
 public:
-    ShapeEstimator();
+    ShapeEstimation();
 
     void sigmoidalCompression(std::vector<float> &pixelLuminances, float sigma);
     std::vector<float> computePixelLuminance(ImageReader imageIn, ImageReader mask, float &sigma);
@@ -29,4 +29,4 @@ private:
 
 };
 
-#endif // SHAPEESTIMATOR_H
+#endif // SHAPEESTIMATION_H
