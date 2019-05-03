@@ -8,7 +8,7 @@
 #include <QImage>
 #include "imagereader.h"
 #include "bilateralfilter.h"
-#include "shapeestimator.h"
+#include "shapeestimation.h"
 #include "incidentlight.h"
 #include "retexture.h"
 #include "histogram.h"

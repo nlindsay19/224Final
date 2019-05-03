@@ -1,4 +1,4 @@
-#include "shapeestimator.h"
+#include "shapeestimation.h"
 #include "math.h"
 #include "assert.h"
 
@@ -9,12 +9,12 @@
 
 using namespace Eigen;
 
-ShapeEstimator::ShapeEstimator()
+ShapeEstimation::ShapeEstimation()
 {
     m_bilateralSmoothing = 0.003f;
 }
 
-void ShapeEstimator::estimateShape(ImageReader imageIn, ImageReader mask, std::vector<float>& depthMap, std::vector<Vector3f>& normalMap, std::vector<float> &gradientX, std::vector<float> &gradientY){
+void ShapeEstimation::estimateShape(ImageReader imageIn, ImageReader mask, std::vector<float>& depthMap, std::vector<Vector3f>& normalMap, std::vector<float> &gradientX, std::vector<float> &gradientY){
     BilateralFilter bf;
     int rows = imageIn.getImageHeight();
     int cols = imageIn.getImageWidth();
@@ -98,7 +98,7 @@ void ShapeEstimator::estimateShape(ImageReader imageIn, ImageReader mask, std::v
     normalMap = normals;
 }
 
-std::vector<float> ShapeEstimator::computePixelLuminance(ImageReader imageIn, ImageReader mask, float &sigma){
+std::vector<float> ShapeEstimation::computePixelLuminance(ImageReader imageIn, ImageReader mask, float &sigma){
     int rows = imageIn.getImageHeight();
     int cols = imageIn.getImageWidth();
     std::vector<float> pixelLuminances;
@@ -130,21 +130,21 @@ std::vector<float> ShapeEstimator::computePixelLuminance(ImageReader imageIn, Im
     return pixelLuminances;
 }
 
-void ShapeEstimator::sigmoidalCompression(std::vector<float> &pixelLuminances, float sigma){
+void ShapeEstimation::sigmoidalCompression(std::vector<float> &pixelLuminances, float sigma){
     float n = 0.73;
     for(int i = 0; i < pixelLuminances.size(); i++){
         pixelLuminances[i] = pow(pixelLuminances[i], n)/(pow(pixelLuminances[i], n) + pow(sigma, n));
     }
 }
 
-void ShapeEstimator::sigmoidalInversion(std::vector<float> &pixelLuminances, float sigma){
+void ShapeEstimation::sigmoidalInversion(std::vector<float> &pixelLuminances, float sigma){
     float n = 0.73;
     for(int i = 0; i < pixelLuminances.size(); i++){
         pixelLuminances[i] = pow(-1.0f * pow(sigma, n) * pixelLuminances[i] / (pixelLuminances[i] - 1.0f), 1.0f/n);
     }
 }
 
-std::vector<Vector3f> ShapeEstimator::gradientField(ImageReader mask, std::vector<float> &pixelLuminances, std::vector<float> &gradientX, std::vector<float> &gradientY){
+std::vector<Vector3f> ShapeEstimation::gradientField(ImageReader mask, std::vector<float> &pixelLuminances, std::vector<float> &gradientX, std::vector<float> &gradientY){
     int rows = mask.getImageHeight();
     int cols = mask.getImageWidth();
 
@@ -211,7 +211,7 @@ std::vector<Vector3f> ShapeEstimator::gradientField(ImageReader mask, std::vecto
     return normals;
 }
 
-float ShapeEstimator::gradientReshapeRecursive(float in, int itr){
+float ShapeEstimation::gradientReshapeRecursive(float in, int itr){
     float x = fabs(in);
     for(int i = 0; i < itr; i++){
         x = gradientReshape(x);
@@ -222,11 +222,11 @@ float ShapeEstimator::gradientReshapeRecursive(float in, int itr){
     return x;
 }
 
-float ShapeEstimator::gradientReshape(float x){
+float ShapeEstimation::gradientReshape(float x){
     return (3.0f + (-6.0f + 4.0f * x) * x) * x;
 }
 
-void ShapeEstimator::cropMask(ImageReader mask, std::vector<float> &pixelLuminances){
+void ShapeEstimation::cropMask(ImageReader mask, std::vector<float> &pixelLuminances){
     int rows = mask.getImageHeight();
     int cols = mask.getImageWidth();
 
@@ -248,7 +248,7 @@ void ShapeEstimator::cropMask(ImageReader mask, std::vector<float> &pixelLuminan
     }
 }
 
-std::vector<float> ShapeEstimator::getLuminances()
+std::vector<float> ShapeEstimation::getLuminances()
 {
     return m_luminances;
 }

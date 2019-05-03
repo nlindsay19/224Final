@@ -1,5 +1,5 @@
 #include "materialmanager.h"
-#include "shapeestimator.h"
+#include "shapeestimation.h"
 #include "incidentlight.h"
 #include "brdfreplacement.h"
 #include "retexture.h"
@@ -111,7 +111,7 @@ bool MaterialManager::changeBrdf(){
     std::vector<float> gradientX;
     std::vector<float> gradientY;
 
-    ShapeEstimator se;
+    ShapeEstimation se;
 
     if(!areShapeEstimationParamsValid()){
         return false;
@@ -182,7 +182,7 @@ bool MaterialManager::retexture(){
     std::vector<float> gradientX;
     std::vector<float> gradientY;
 
-    ShapeEstimator se;
+    ShapeEstimation se;
 
     if(!areShapeEstimationParamsValid()){
         return false;
@@ -227,7 +227,7 @@ bool MaterialManager::makeGlass(){
     std::vector<float> gradientX;
     std::vector<float> gradientY;
 
-    ShapeEstimator se;
+    ShapeEstimation se;
 
     if(!areShapeEstimationParamsValid()){
         return false;
@@ -294,7 +294,7 @@ bool MaterialManager::makeCaustic(){
     std::vector<float> gradientX;
     std::vector<float> gradientY;
 
-    ShapeEstimator se;
+    ShapeEstimation se;
 
     if(!areShapeEstimationParamsValid()){
         return false;
