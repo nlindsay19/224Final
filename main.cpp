@@ -26,23 +26,23 @@ int main(int argc, char *argv[])
     w.show();
 
     MaterialManager mm;
-    mm.materialParams.backgroundFile = "images/background.jpg";
+    mm.materialParams.backgroundFile = "images/color.jpg";
     mm.materialParams.mainImageFile = "images/han.jpg";
     mm.materialParams.bilateralSmoothing = 0.004f;
     mm.materialParams.curvature = 1.0f;
     mm.materialParams.maskFile = "images/han_mask.jpg";
-    mm.materialParams.textureFile = "images/marble.jpg";
+    mm.materialParams.textureFile = "";
 
-    mm.materialParams.diffuse = Vector3f(0.5, 0.5, 0.5);
+    mm.materialParams.diffuse = Vector3f(1.0,1.0,1.0);
     mm.materialParams.specular = Vector3f(0.5,0.5,0.5);
 
 
     mm.materialParams.s = 50;
-    mm.materialParams.frosty = 5;
+    mm.materialParams.frosty = 1;
     mm.materialParams.glassColor = Vector3f(1.0,1.0,1.0);
-    mm.materialParams.darkness = 1.8f;
+    mm.materialParams.darkness = 1.2f;
 
-    mm.materialParams.makeMaterial = GLASS;
+    mm.materialParams.makeMaterial = LIGHTING;
     mm.transformMaterial();
 
     std::cout << "done" << std::endl;

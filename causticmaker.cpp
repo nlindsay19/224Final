@@ -46,8 +46,8 @@ Matrix3f CausticMaker::basis(float x1, float y1, float x2, float y2, float x3, f
 Vector3f CausticMaker::mapCoordinate(Matrix3f transform, float x, float y){
     Vector3f homogeneous = Vector3f(x, y, 1);
     homogeneous = transform * homogeneous;
-    homogeneous[0] = fmin(fmax(homogeneous[0]/homogeneous[2], 0), m_cols - 1);
-    homogeneous[1] = fmin(fmax(homogeneous[1]/homogeneous[2], 0), m_rows - 1);
+    homogeneous[0] = homogeneous[0]/homogeneous[2];
+    homogeneous[1] = homogeneous[1]/homogeneous[2];
     return homogeneous;
 }
 
@@ -66,7 +66,7 @@ std::vector<Vector3f> CausticMaker::project(float x1, float y1, float x2, float 
         }
     }
     std::cout <<  fmin(x1, x4) << " " << fmax(x2, x3)<< std::endl;
-    float alpha = 0.5;
+    float alpha = 0.6;
     for(int i = 0; i < m_rows; i++){
         for(int j = 0; j < m_cols; j++){
             Vector3f invMap = mapCoordinate(mapper, j, i);
@@ -74,7 +74,7 @@ std::vector<Vector3f> CausticMaker::project(float x1, float y1, float x2, float 
             int y = int(invMap[1]);
             if( i > fmin(y1, y2) && i < fmax(y3, y4)){
                 if(j > fmin(x1, x4) && j < fmax(x2, x3)){
-                    if( m_caustic[y * m_cols + x][0] > 3 ){
+                    if( m_caustic[y * m_cols + x][0] > 3 && x < m_cols && y < m_rows and x > 0 and y > 0){
                         result[i * m_cols + j][0] = fmin(alpha * m_caustic[y * m_cols + x][0] + m_image[i * m_cols + j][0], 255);
                         result[i * m_cols + j][1] = fmin(alpha * m_caustic[y * m_cols + x][1] + m_image[i * m_cols + j][1], 255);
                         result[i * m_cols + j][2] = fmin(alpha * m_caustic[y * m_cols + x][2] + m_image[i * m_cols + j][2], 255);
