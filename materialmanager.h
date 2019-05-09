@@ -16,7 +16,8 @@ enum MaterialChangeType{
     BRDF,
     RETEXTURE,
     GLASS,
-    CAUSTIC
+    CAUSTIC,
+    LIGHTING
 };
 
 struct MaterialParams{
@@ -38,6 +39,7 @@ struct MaterialParams{
     int frosty = 5;
     Vector3f glassColor = Vector3f(1,1,1);
     float darkness = 1.8;
+    //highlight threshhold
 
     MaterialChangeType makeMaterial = BRDF;
 };
@@ -59,6 +61,7 @@ public:
     bool makeGlass();
     bool makeCaustic();
     bool transformMaterial();
+    bool changeLighting();
 };
 
 #endif // MATERIALMANAGER_H

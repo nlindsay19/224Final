@@ -23,6 +23,9 @@ bool MaterialManager::transformMaterial(){
     if(materialParams.makeMaterial == CAUSTIC){
         return makeCaustic();
     }
+    if(materialParams.makeMaterial == LIGHTING){
+        return changeLighting();
+    }
 }
 
 bool MaterialManager::areBasicParamsValid(){
@@ -135,6 +138,55 @@ bool MaterialManager::changeBrdf(){
     br.m_specular = materialParams.specular;
 
     std::vector<Vector3f> replaced = br.replaceBrdf(inpainting, mask.toVector(), normals, rows, cols);
+    vectorToFile(replaced, "images/replaceBrdf.png", rows, cols);
+    return true;
+}
+
+bool MaterialManager::changeLighting(){
+    if(!areBasicParamsValid()){
+        return false;
+    }
+    ImageReader im(materialParams.mainImageFile);
+    ImageReader mask(materialParams.maskFile);
+
+    if(materialParams.backgroundFile == ""){
+        // Use input image as background rather than replacing background.
+        materialParams.backgroundFile = materialParams.mainImageFile;
+    }
+    ImageReader background(materialParams.backgroundFile);
+
+    int cols = im.getImageWidth();
+    int rows = im.getImageHeight();
+
+    std::vector<float> depth;
+    std::vector<Eigen::Vector3f> normals;
+    std::vector<float> gradientX;
+    std::vector<float> gradientY;
+
+    ShapeEstimation se;
+
+    if(!areShapeEstimationParamsValid()){
+        return false;
+    }
+
+    se.m_bilateralSmoothing = materialParams.bilateralSmoothing;
+    se.m_curvature = materialParams.curvature;
+
+    se.estimateShape(im,mask, depth, normals, gradientX, gradientY);
+
+    incidentlight incidentObj;
+    std::vector<Vector3f> inpainting = incidentObj.inPaint(mask, background.toVector());
+    vectorToFile(inpainting, "images/inpaint.png", rows, cols);
+
+    BrdfReplacement br;
+
+    if(!areBrdfParamsValid()){
+        return false;
+    }
+    br.m_diffuse = Vector3f(1.0f,1.0f,1.0f);
+    br.m_specular = Vector3f(0.5f,0.5f,0.5f);
+
+    std::vector<Vector3f> replaced = br.paintEnvMap(inpainting, mask.toVector(), normals, rows, cols);
     vectorToFile(replaced, "images/replaceBrdf.png", rows, cols);
     return true;
 }
@@ -260,8 +312,8 @@ bool MaterialManager::makeGlass(){
 
     Histogram hist(se.getLuminances());
     std::vector<int> highlights = hist.findHighlights();
-    std::vector<Vector3f> originalImage = im.toVector();
 
+    std::vector<Vector3f> originalImage = im.toVector();
     for (int i = 0; i < highlights.size(); i++) {
         int index = highlights[i];
         Vector3f originalVal = originalImage[index];
@@ -269,6 +321,7 @@ bool MaterialManager::makeGlass(){
         retexturing[index] = Vector3f(gray, gray, gray);
     }
     vectorToFile(retexturing, "images/glass.png", rows, cols);
+
     return true;
 }
 
@@ -335,10 +388,10 @@ bool MaterialManager::makeCaustic(){
     }
     vectorToFile(retexturing, "images/glass.png", rows, cols);
 
-    ImageReader c("images/c_project.png");
+    ImageReader c("images/mug_caustic.png");
 
     CausticMaker cm(c.toVector(), retexturing, rows, cols);
-    std::vector<Vector3f> caustic = cm.project(0,0,100,0,255,255,0,100);
+    std::vector<Vector3f> caustic = cm.project(102,185,200,200,49,275,2,195);
 
     vectorToFile(caustic, "images/glassWithCaustic.png", rows, cols);
     return true;
