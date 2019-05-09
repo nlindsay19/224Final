@@ -26,11 +26,11 @@ int main(int argc, char *argv[])
     w.show();
 
     MaterialManager mm;
-    mm.materialParams.backgroundFile = "images/color.jpg";
-    mm.materialParams.mainImageFile = "images/han.jpg";
+    mm.materialParams.backgroundFile = "";
+    mm.materialParams.mainImageFile = "images/mug.png";
     mm.materialParams.bilateralSmoothing = 0.004f;
     mm.materialParams.curvature = 1.0f;
-    mm.materialParams.maskFile = "images/han_mask.jpg";
+    mm.materialParams.maskFile = "images/mug_mask.png";
     mm.materialParams.textureFile = "";
 
     mm.materialParams.diffuse = Vector3f(1.0,1.0,1.0);
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
     mm.materialParams.glassColor = Vector3f(1.0,1.0,1.0);
     mm.materialParams.darkness = 1.2f;
 
-    mm.materialParams.makeMaterial = LIGHTING;
+    mm.materialParams.makeMaterial = BRDF;
     mm.transformMaterial();
 
     std::cout << "done" << std::endl;

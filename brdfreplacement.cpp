@@ -172,15 +172,15 @@ std::vector<Vector3f> BrdfReplacement::paintEnvMap(std::vector<Vector3f> inpaint
     for(int i = 0; i < rows; i ++){
         for(int j = 0; j < cols; j ++){
             if(mask[i * cols + j][0] > 150){
-                if(i < float(rows) * 1.0f / 4){
+                if(j < 120){
                    changedPixels.push_back(maskInd);
                 }
 //                if(i > float(rows) * 1.0f / 4 && i < float(rows) * 3.0f / 4){
 //                   changedPixels.push_back(maskInd);
 //                }
-//                if(i > float(rows) * 3.0f / 4){
-//                   changedPixels.push_back(maskInd);
-//                }
+                else if(i > (float(rows) * 3.0f / 4)){
+                   changedPixels.push_back(maskInd);
+                }
                 maskInd += 1;
             }
         }
@@ -192,7 +192,7 @@ std::vector<Vector3f> BrdfReplacement::paintEnvMap(std::vector<Vector3f> inpaint
     for(int i = 0; i < rows; i ++){
         for(int j = 0; j < cols; j ++){
             if(mask[i * cols + j][0] > 150){
-                if(i < float(rows) * 1.0f / 4){
+                if(j < 120){
                     desiredReds(desired_num) = 255;
                     desiredGreens(desired_num) = 0;
                     desiredBlues(desired_num) = 0;
@@ -204,12 +204,12 @@ std::vector<Vector3f> BrdfReplacement::paintEnvMap(std::vector<Vector3f> inpaint
 //                    desiredBlues(desired_num) = 255;
 //                    desired_num += 1;
 //                }
-//                if(i > float(rows) * 3.0f / 4){
-//                    desiredReds(desired_num) = 0;
-//                    desiredGreens(desired_num) = 255;
-//                    desiredBlues(desired_num) = 0;
-//                    desired_num += 1;
-//                }
+                else if(i > (float(rows) * 3.0f / 4)){
+                    desiredReds(desired_num) = 0;
+                    desiredGreens(desired_num) = 255;
+                    desiredBlues(desired_num) = 0;
+                    desired_num += 1;
+                }
             }
         }
     }
@@ -230,11 +230,6 @@ std::vector<Vector3f> BrdfReplacement::paintEnvMap(std::vector<Vector3f> inpaint
     VectorXf solveGreen(sampleNum);
     VectorXf solveBlue(sampleNum);
 
-//    solveRed = (redToSolve.transpose() * redToSolve).ldlt().solve(redToSolve.transpose() * desiredReds);
-//    solveGreen = (greenToSolve.transpose() * greenToSolve).ldlt().solve(greenToSolve.transpose() * desiredGreens);
-//    solveBlue = (blueToSolve.transpose() * blueToSolve).ldlt().solve(blueToSolve.transpose() * desiredBlues);
-    std::cout << "creating python environment" << std::endl;
-
     writeCoefficientsToFile("reds.txt", redToSolve, desired_num);
     writeCoefficientsToFile("blues.txt", redToSolve, desired_num);
     writeCoefficientsToFile("greens.txt", redToSolve, desired_num);
@@ -243,15 +238,17 @@ std::vector<Vector3f> BrdfReplacement::paintEnvMap(std::vector<Vector3f> inpaint
     writeDesiredToFile("desired_blues.txt", desiredBlues, desired_num);
     writeDesiredToFile("desired_greens.txt", desiredGreens, desired_num);
 
-//    QProcess p;
-//    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-//    env.insert("PYTHONPATH", "/Users/purvigoel/anaconda3/lib/python3.6/site-packages");
-//    QStringList params;
-//    params << "brdfsolver.py";
-//    p.setStandardOutputFile("log.txt");
-//    p.start("/Users/purvigoel/anaconda3/bin/python", params);
-//    p.waitForFinished(-1);
-//    std::cout << "here" << std::endl;
+    std::cout << "creating python environment" << std::endl;
+    QProcess p;
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    env.insert("PYTHONPATH", "/Users/purvigoel/anaconda3/lib/python3.6/site-packages");
+    QStringList params;
+    params << "brdfsolver.py" << ">>" << "log.txt";
+    p.setStandardOutputFile("log.txt");
+    p.start("/Users/purvigoel/anaconda3/bin/python", params);
+    p.waitForFinished(-1);
+
+    std::cout << "Solved environment map" << std::endl;
 
     getNewEnvmap("solved_reds.txt", solveRed);
     getNewEnvmap("solved_greens.txt", solveGreen);
